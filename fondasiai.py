@@ -31,7 +31,7 @@ model = RandomForestRegressor()
 model.fit(X_train, y_train)
 
 # Membuat aplikasi Streamlit
-st.title('Prediksi Daya Dukung Fondasi Tiang Pancang')
+st.title('Prediksi Daya Dukung Fondasi Tiang Pancang dengan AI (Prediction Bearing Capacity of Pile with AI) by Fabian J Manoppo ')
 
 # Input dari pengguna
 c = st.number_input('Masukkan kohesi tanah (c) dalam kPa', min_value=0.0, value=25.0)
