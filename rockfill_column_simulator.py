@@ -11,7 +11,7 @@ def simulate_column_removal(soil_modulus, rockfill_modulus, initial_stress, dept
     stress = initial_stress * np.exp(-x / soil_modulus) + rockfill_modulus * np.log(x + 1)
     return x, stress
 
-st.title("Rockfill Column Construction Simulator")
+st.title("Numerical Model Analysis of Cassings Effect Rockfill Column Construction by Fabian J Manoppo")
 
 st.sidebar.header("Input Parameters")
 soil_modulus = st.sidebar.number_input("Soil Modulus (kPa)", min_value=1000, max_value=50000, value=10000)
