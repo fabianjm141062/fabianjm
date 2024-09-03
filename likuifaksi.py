@@ -36,7 +36,7 @@ def calculate_fs(PGA, sigma_v, sigma_v_prime, N1_60, depth):
     return FS
 
 # Streamlit UI
-st.title("Prediksi Likuifaksi Menggunakan Metode Seed & Idriss")
+st.title("Prediksi Likuifaksi Menggunakan Metode Seed & Idriss 1971 oleh Fabian J Manoppo")
 
 # Input data lapisan tanah
 st.header("Data Lapisan Tanah")
