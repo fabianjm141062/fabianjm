@@ -59,7 +59,7 @@ def calculate_sa(Fa, Fv, Ss, S1, T):
     return Sa
 
 # Streamlit App UI
-st.title("Respons Spektra Gempa Kota Manado (1800-2024)")
+st.title("Respons Spektra Gempa Kota Manado (1800-2024)oleh Prof.Dr. Fabian J Manoppo")
 st.write("""
 Aplikasi ini menghitung dan menampilkan grafik respons spektra berdasarkan data gempa dari USGS untuk kota Manado, dengan mempertimbangkan berbagai jenis tanah.
 """)
