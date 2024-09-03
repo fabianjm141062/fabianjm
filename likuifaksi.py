@@ -108,7 +108,7 @@ plt.plot(FS_values, depths, label='Faktor Keamanan (FS)')
 plt.axvline(x=1, color='r', linestyle='--', label='Batas Likuifaksi (FS=1)')
 plt.xlabel('Faktor Keamanan (FS)')
 plt.ylabel('Kedalaman (meter)')
-plt.title('Prediksi Likuifaksi Berdasarkan Kedalaman oleh Fabian J Manoppo')
+plt.title('Prediksi Likuifaksi Berdasarkan Kedalaman Teori Sheed & Idris 1971 oleh Fabian J Manoppo')
 plt.gca().invert_yaxis()  # Membalikkan sumbu Y untuk menunjukkan kedalaman dari atas ke bawah
 plt.grid(True)
 plt.legend()
