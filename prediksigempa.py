@@ -46,19 +46,22 @@ starttime = '1800-01-01'
 endtime = '2024-12-31'
 
 # Streamlit App
-st.title("Earthquake Data in Manado (1800-2024)")
+st.title("Prediksi Gempa Kota Manado Berdasarkan Earthquake Data in Manado (1800-2024)oleh Fabian J Manoppo")
 
 # Fetch the earthquake data
 st.write("Fetching earthquake data from USGS...")
 data = get_earthquake_data(starttime, endtime, minlatitude, maxlatitude, minlongitude, maxlongitude)
 df = extract_earthquake_data(data)
 
+# Rename the columns to match what Streamlit expects
+df.rename(columns={'Latitude': 'lat', 'Longitude': 'lon'}, inplace=True)
+
 # Display the data in a table
 st.write("Displaying earthquake data in the Manado region:")
 st.dataframe(df)
 
 # Show the earthquake data on a map
-st.map(df[['Latitude', 'Longitude']])
+st.map(df[['lat', 'lon']])
 
 # Filter data by magnitude
 min_magnitude = st.slider("Minimum Magnitude", 0.0, 10.0, 4.0)
@@ -69,4 +72,4 @@ st.write(f"Displaying earthquakes with magnitude greater than {min_magnitude}:")
 st.dataframe(filtered_df)
 
 # Show filtered earthquakes on a map
-st.map(filtered_df[['Latitude', 'Longitude']])
+st.map(filtered_df[['lat', 'lon']])
