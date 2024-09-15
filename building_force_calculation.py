@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # Title of the app
-st.title("Internal Forces and Moments of Multi-Story Building")
+st.title("Internal Forces and Moments of Multi-Story Building by Fabian J Manoppo")
 
 # Input parameters for the structure
 material = st.selectbox("Select Material", ["Steel", "Reinforced Concrete"])
