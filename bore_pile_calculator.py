@@ -15,7 +15,7 @@ def static_formula(unit_weight, diameter, depth):
     return capacity
 
 # Streamlit interface
-st.title('Bore Pile Foundation Load Capacity Calculator')
+st.title('Bore Pile Foundation Load Capacity Calculator by Fabian J Manoppo')
 
 st.header('Input Parameters')
 method = st.selectbox('Choose calculation method:', ['SPT Method', 'Static Formula'])
