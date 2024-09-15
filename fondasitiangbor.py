@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Title of the app
-st.title('Prediction of qa, sa, qh, yh, and bm using Machine Learning by fabian J Manoppo')
+st.title('Prediction of Working Vertical Load (Qa), Settlement (Sa), Lateral Capacity (Qh), Lateral Deflection (yh), and Bending Moment (bm) using Machine Learning by fabian J Manoppo')
 
 # Load dataset directly from the file
 df = pd.read_csv('datasetteori.csv')
