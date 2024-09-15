@@ -9,11 +9,11 @@ import matplotlib.pyplot as plt
 
 # Function to fetch stock data from Yahoo Finance
 def load_stock_data(ticker):
-    data = yf.download(ticker, start="2010-01-01", end="2023-01-01")
+    data = yf.download(ticker, start="2010-01-01", end="2024-09-15")
     return data
 
 # Title of the app
-st.title('Stock Price Prediction App')
+st.title('Stock Price Prediction App oleh Fabian J Manoppo')
 
 # Input for stock selection (both international and Indonesian markets)
 st.sidebar.subheader("Stock Selection")
