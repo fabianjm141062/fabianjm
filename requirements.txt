@@ -1,8 +1,9 @@
 scikit-learn
 matplotlib
 pandas
-tensorflow
 gtts
 seaborn
 openpyxl
 yfinance
+tensorflow==2.9.1
+keras==2.9.0
