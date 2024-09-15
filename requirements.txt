@@ -5,5 +5,5 @@ gtts
 seaborn
 openpyxl
 yfinance
-tensorflow
-keras
+tensorflow==2.9.1
+keras==2.9.0
