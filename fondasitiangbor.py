@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 # Title of the app
-st.title('Prediction of Working Vertical Load (Qa), Settlement (Sa), Lateral Capacity (Qh), Lateral Deflection (yh), and Bending Moment (bm) using Machine Learning by fabian J Manoppo')
+st.title('Prediction of Working Vertical Load (Qa), Settlement (Sa), Lateral Capacity (Qh), Lateral Deflection (yh), and Bending Moment (bm) of Bore Pile using Machine Learning by fabian J Manoppo')
 
 # Load dataset directly from the file
 df = pd.read_csv('datasetteori.csv')
@@ -31,9 +31,9 @@ model.fit(X_train, y_train)
 st.subheader("Input values for prediction (with units):")
 diameter = st.number_input("Diameter (m):", value=0.0)
 length = st.number_input("Length (m):", value=0.0)
-nspt1 = st.number_input("NSPT1 (blows/ft):", value=0.0)
-nspt2 = st.number_input("NSPT2 (blows/ft):", value=0.0)
-nspt3 = st.number_input("NSPT3 (blows/ft):", value=0.0)
+nspt1 = st.number_input("NSPT1 (blows/cm):", value=0.0)
+nspt2 = st.number_input("NSPT2 (blows/cm):", value=0.0)
+nspt3 = st.number_input("NSPT3 (blows/cm):", value=0.0)
 
 # When the button is clicked, perform prediction
 if st.button("Predict"):
