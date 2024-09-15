@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
 
 # Streamlit configuration
-st.title('Prediction of qa, sa, qh, yh, and bm using RandomForestRegressor')
+st.title('Prediction of qa, sa, qh, yh, and bm using RandomForestRegressor oleh Fabian J Manoppo')
 
 # Load dataset
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
