@@ -84,4 +84,5 @@ elif data_type == 'Dutch Cone Penetrometer Data':
     for i in range(num_layers):
         st.write(f"### Layer {i+1}")
         cone_resistance = st.number_input(f'Layer {i+1} - Cone Resistance (MPa):', min_value=0.1, max_value=50.0, value=10.0)
-        unit_weight = st.number_input(f'Layer {i+1}
+        unit_weight = st.number_input(f'Layer {i+1} - Unit Weight of Soil (kN/m³):', min_value=10.0, max_value=25.0, value=18.0)
+
