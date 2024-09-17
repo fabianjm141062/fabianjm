@@ -57,7 +57,7 @@ model.fit(X_train, y_train)
 # Streamlit app
 st.title("Heart Disease Treatment Prediction oleh Fabian J Manoppo")
 
-st.write("This app predicts the type of treatment required for heart disease based on input features.")
+st.write("This app predicts the type of treatment required for heart disease based on input features. Perlu Konsultasi Dokter Ahli, Penjelasan bisa dibaca di link https://fabianjm-ai.com/jantung.")
 
 # User input
 gender = st.selectbox('Gender', gender_options)
