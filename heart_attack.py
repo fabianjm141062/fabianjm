@@ -18,12 +18,19 @@ diabetes_options = ['Yes', 'No']
 smoking_status_options = ['Never', 'Current']
 chest_pain_options = ['Typical Angina', 'Atypical Angina', 'Non-anginal Pain']
 
-# Encode categorical variables for the model using the dataset
+# Encode categorical variables for the model using the dataset, but first ensure all values match the predefined list
 encoder_gender = LabelEncoder().fit(gender_options)
 encoder_diabetes = LabelEncoder().fit(diabetes_options)
 encoder_smoking_status = LabelEncoder().fit(smoking_status_options)
 encoder_chest_pain = LabelEncoder().fit(chest_pain_options)
 
+# Ensure that all values in the dataset match the predefined categories; if not, replace them with NaN or drop rows.
+heart_data['Smoking Status'] = heart_data['Smoking Status'].apply(lambda x: x if x in smoking_status_options else 'Never')
+heart_data['Gender'] = heart_data['Gender'].apply(lambda x: x if x in gender_options else 'Male')
+heart_data['Has Diabetes'] = heart_data['Has Diabetes'].apply(lambda x: x if x in diabetes_options else 'No')
+heart_data['Chest Pain Type'] = heart_data['Chest Pain Type'].apply(lambda x: x if x in chest_pain_options else 'Typical Angina')
+
+# Apply label encoding
 heart_data['Gender'] = encoder_gender.transform(heart_data['Gender'])
 heart_data['Has Diabetes'] = encoder_diabetes.transform(heart_data['Has Diabetes'])
 heart_data['Smoking Status'] = encoder_smoking_status.transform(heart_data['Smoking Status'])
@@ -42,7 +49,7 @@ model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
 # Streamlit app
-st.title("Heart Disease Treatment Prediction")
+st.title("Heart Disease Treatment Prediction oleh Fabian J Manoppo")
 
 st.write("This app predicts the type of treatment required for heart disease based on input features.")
 
@@ -67,5 +74,4 @@ input_data = [[gender_encoded, age, blood_pressure, cholesterol, diabetes_encode
 # Make prediction
 if st.button("Predict"):
     prediction = model.predict(input_data)
-    treatment = LabelEncoder().fit_transform(heart_data['Treatment'])
     st.write(f"Predicted Treatment: {prediction[0]}")
