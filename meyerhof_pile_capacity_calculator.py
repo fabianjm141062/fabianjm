@@ -1,7 +1,7 @@
 import streamlit as st
 
 def calculate_bearing_capacity_lab(layers, diameter, pile_length):
-    """ Calculate bearing capacity based on laboratory test data using Meyerhof's formula. """
+    """ Calculate bearing capacity based on laboratory test data in tons using Meyerhof's formula. """
     area = 3.14159 * (diameter / 2) ** 2
     bearing_capacity = 0
     
@@ -9,8 +9,9 @@ def calculate_bearing_capacity_lab(layers, diameter, pile_length):
         cohesion, unit_weight, depth = layer['cohesion'], layer['unit_weight'], layer['depth']
         
         # Meyerhof's calculations for laboratory data
-        end_bearing = cohesion * 9 * area  # Simplified, typically involves factors based on phi
-        skin_friction = 0.1 * unit_weight * area * depth  # Simplified
+        # Convert kPa to MPa (1 MPa = 10.1972 tons/m²)
+        end_bearing = cohesion * 9 * area * 10.1972  # End bearing in tons
+        skin_friction = 0.1 * unit_weight * area * depth * 10.1972  # Skin friction in tons
         
         layer_capacity = end_bearing + skin_friction
         bearing_capacity += layer_capacity
@@ -18,16 +19,16 @@ def calculate_bearing_capacity_lab(layers, diameter, pile_length):
     return bearing_capacity
 
 def calculate_bearing_capacity_nspt(layers, diameter, pile_length):
-    """ Calculate bearing capacity based on NSPT values using empirical methods. """
+    """ Calculate bearing capacity based on NSPT values in tons. """
     area = 3.14159 * (diameter / 2) ** 2
     bearing_capacity = 0
     
     for layer in layers:
-        N_SPT, unit_weight, depth = layer['N_SPT'], layer['unit_weight'], layer['depth']
+        N_SPT, depth = layer['N_SPT'], layer['depth']
         
-        # Empirical NSPT-based calculations (Meyerhof simplified or others)
-        end_bearing = N_SPT * 40 * area  # Example calculation based on N-SPT value
-        skin_friction = 0.1 * unit_weight * area * depth  # Simplified
+        # End bearing in tons
+        end_bearing = N_SPT * 40 * area * 10.1972
+        skin_friction = 0  # No skin friction calculation without unit weight
         
         layer_capacity = end_bearing + skin_friction
         bearing_capacity += layer_capacity
@@ -35,16 +36,16 @@ def calculate_bearing_capacity_nspt(layers, diameter, pile_length):
     return bearing_capacity
 
 def calculate_bearing_capacity_cone(layers, diameter, pile_length):
-    """ Calculate bearing capacity based on Dutch Cone Penetrometer data. """
+    """ Calculate bearing capacity based on Dutch Cone Penetrometer data in tons. """
     area = 3.14159 * (diameter / 2) ** 2
     bearing_capacity = 0
     
     for layer in layers:
-        cone_resistance, unit_weight, depth = layer['cone_resistance'], layer['unit_weight'], layer['depth']
+        cone_resistance, depth = layer['cone_resistance'], layer['depth']
         
-        # Dutch Cone Penetrometer calculations (e.g., Schmertmann's formula)
-        end_bearing = cone_resistance * area  # Example simplified calculation
-        skin_friction = 0.1 * unit_weight * area * depth  # Simplified
+        # End bearing in tons
+        end_bearing = cone_resistance * area * 10.1972  # Convert MPa to tons/m²
+        skin_friction = 0  # No skin friction calculation without unit weight
         
         layer_capacity = end_bearing + skin_friction
         bearing_capacity += layer_capacity
@@ -52,7 +53,7 @@ def calculate_bearing_capacity_cone(layers, diameter, pile_length):
     return bearing_capacity
 
 # Streamlit application interface
-st.title('Pile Foundation Bearing Capacity Calculator Meyerhof Theory by Fabian J Manoppo')
+st.title('Pile Foundation Bearing Capacity Calculator (in Tons)')
 
 # Select type of data for input
 data_type = st.selectbox('Select Data Type:', ['Laboratory Data', 'NSPT Data', 'Dutch Cone Penetrometer Data'])
@@ -75,18 +76,16 @@ elif data_type == 'NSPT Data':
     for i in range(num_layers):
         st.write(f"### Layer {i+1}")
         N_SPT = st.number_input(f'Layer {i+1} - N SPT Value:', min_value=0, max_value=100, value=10)
-        unit_weight = st.number_input(f'Layer {i+1} - Unit Weight of Soil (kN/m³):', min_value=10.0, max_value=25.0, value=18.0)
         depth = st.number_input(f'Layer {i+1} - Layer Depth (m):', min_value=0.1, max_value=30.0, value=1.0)
-        layers.append({'N_SPT': N_SPT, 'unit_weight': unit_weight, 'depth': depth})
+        layers.append({'N_SPT': N_SPT, 'depth': depth})
 
 elif data_type == 'Dutch Cone Penetrometer Data':
     st.header('Input Dutch Cone Penetrometer Data for Each Layer')
     for i in range(num_layers):
         st.write(f"### Layer {i+1}")
         cone_resistance = st.number_input(f'Layer {i+1} - Cone Resistance (MPa):', min_value=0.1, max_value=50.0, value=10.0)
-        unit_weight = st.number_input(f'Layer {i+1} - Unit Weight of Soil (kN/m³):', min_value=10.0, max_value=25.0, value=18.0)
         depth = st.number_input(f'Layer {i+1} - Layer Depth (m):', min_value=0.1, max_value=30.0, value=1.0)
-        layers.append({'cone_resistance': cone_resistance, 'unit_weight': unit_weight, 'depth': depth})
+        layers.append({'cone_resistance': cone_resistance, 'depth': depth})
 
 # Input for pile properties
 diameter = st.number_input('Diameter of the pile (m):', min_value=0.1, value=0.6, step=0.1)
@@ -101,4 +100,4 @@ if st.button('Calculate Bearing Capacity'):
     elif data_type == 'Dutch Cone Penetrometer Data':
         capacity = calculate_bearing_capacity_cone(layers, diameter, pile_length)
     
-    st.success(f'The estimated load-bearing capacity of the pile is {capacity:.2f} kN')
+    st.success(f'The estimated load-bearing capacity of the pile is {capacity:.2f} tons')
