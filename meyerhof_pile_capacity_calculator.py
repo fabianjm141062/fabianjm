@@ -48,7 +48,7 @@ def calculate_bending_moment(P_l, pile_length, e_ratio=0.15):
     return M_max
 
 # Streamlit interface
-st.title('Pile Foundation Bearing, Lateral Capacity & Bending Moment Calculator (Conservative Factors)')
+st.title('Pile Foundation Bearing, Lateral Capacity & Bending Moment Calculator (Conservative Factors) Meyerhof Theory by Fabian J Manoppo')
 
 # Select data type for input
 data_type = st.selectbox('Select Data Type:', ['Laboratory Data', 'SPT Data', 'Sondir Data'])
