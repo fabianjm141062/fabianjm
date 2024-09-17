@@ -1,7 +1,7 @@
 import streamlit as st
 
-# Function to calculate bearing capacity for sandy clay soils using SPT, cu, or cone resistance
-def calculate_bearing_capacity(layers, diameter, pile_length, data_type, k=0.15, alpha=0.03):
+# Function to calculate vertical bearing capacity
+def calculate_bearing_capacity(layers, diameter, pile_length, data_type, k=0.15, alpha=0.02):
     area_tip = 3.14159 * (diameter / 2) ** 2  # Pile tip area in square meters
     area_shaft = 3.14159 * diameter * pile_length  # Pile shaft area in square meters
     bearing_capacity = 0
@@ -10,22 +10,18 @@ def calculate_bearing_capacity(layers, diameter, pile_length, data_type, k=0.15,
     for layer in layers:
         if data_type == 'SPT Data':
             N_SPT = layer['N_SPT']
-            cu = 0  # Not used in SPT
-            end_bearing = N_SPT * 3 * area_tip * 10.1972  # SPT-based end bearing capacity
-            skin_friction = k * N_SPT * area_shaft * 10.1972  # SPT-based skin friction
+            end_bearing = N_SPT * 2 * area_tip * 10.1972  # Reduced SPT-based end bearing capacity
+            skin_friction = k * N_SPT * area_shaft * 10.1972  # Reduced skin friction for SPT
 
         elif data_type == 'Laboratory Data':
             cu = layer['cu']
-            N_SPT = 0  # Not used in Laboratory data
-            end_bearing = 9 * cu * area_tip * 10.1972  # cu-based end bearing capacity
-            skin_friction = alpha * cu * area_shaft * 10.1972  # cu-based skin friction
+            end_bearing = 5 * cu * area_tip * 10.1972  # Reduced cu-based end bearing capacity
+            skin_friction = alpha * cu * area_shaft * 10.1972  # Reduced cu-based skin friction
 
         elif data_type == 'Sondir Data':
             cone_resistance = layer['cone_resistance']
-            N_SPT = 0  # Not used in Sondir data
-            cu = 0  # Not used in Sondir data
-            end_bearing = 0.6 * cone_resistance * area_tip * 0.0981  # Cone resistance-based end bearing capacity
-            skin_friction = alpha * cone_resistance * area_shaft * 0.0981  # Cone resistance-based skin friction
+            end_bearing = 0.4 * cone_resistance * area_tip * 0.0981  # Reduced cone resistance-based end bearing capacity
+            skin_friction = alpha * cone_resistance * area_shaft * 0.0981  # Reduced cone resistance-based skin friction
 
         bearing_capacity += end_bearing
         skin_friction_capacity += skin_friction
@@ -34,25 +30,25 @@ def calculate_bearing_capacity(layers, diameter, pile_length, data_type, k=0.15,
     return total_capacity
 
 # Function to calculate lateral bearing capacity for sandy clay soils
-def calculate_lateral_bearing_capacity_sandy_clay(diameter, pile_length, cu=None, N_SPT=None, cone_resistance=None, data_type="SPT Data"):
+def calculate_lateral_bearing_capacity(diameter, pile_length, cu=None, N_SPT=None, cone_resistance=None, data_type="SPT Data"):
     if data_type == "SPT Data":
-        Cl = 0.15 * N_SPT  # Lateral factor for SPT-based approach
+        Cl = 0.1 * N_SPT  # Reduced lateral factor for SPT
     elif data_type == "Laboratory Data":
-        Cl = 0.3 * cu  # Lateral factor for cu-based approach
+        Cl = 0.2 * cu  # Reduced lateral factor for cu-based approach
     elif data_type == "Sondir Data":
-        Cl = 0.15 * cone_resistance  # Lateral factor for Sondir-based approach
+        Cl = 0.1 * cone_resistance  # Reduced lateral factor for Sondir
 
     lateral_bearing_capacity = Cl * diameter * pile_length
     return lateral_bearing_capacity
 
 # Function to calculate maximum bending moment based on lateral load and eccentricity
-def calculate_bending_moment(P_l, pile_length, e_ratio=0.2):
-    e = e_ratio * pile_length  # Eccentricity (default is 0.2L)
+def calculate_bending_moment(P_l, pile_length, e_ratio=0.15):
+    e = e_ratio * pile_length  # Reduced eccentricity (default is 0.15L)
     M_max = P_l * e  # Maximum bending moment
     return M_max
 
 # Streamlit interface
-st.title('Pile Foundation Bearing, Lateral Capacity & Bending Moment Calculator')
+st.title('Pile Foundation Bearing, Lateral Capacity & Bending Moment Calculator (Conservative Factors)')
 
 # Select data type for input
 data_type = st.selectbox('Select Data Type:', ['Laboratory Data', 'SPT Data', 'Sondir Data'])
@@ -92,11 +88,11 @@ if st.button('Calculate Bearing & Lateral Capacities'):
     capacity = calculate_bearing_capacity(layers, diameter, pile_length, data_type)
     
     if data_type == 'Laboratory Data':
-        lateral_capacity = calculate_lateral_bearing_capacity_sandy_clay(diameter, pile_length, cu=layers[0]['cu'], data_type="Laboratory Data")
+        lateral_capacity = calculate_lateral_bearing_capacity(diameter, pile_length, cu=layers[0]['cu'], data_type="Laboratory Data")
     elif data_type == 'SPT Data':
-        lateral_capacity = calculate_lateral_bearing_capacity_sandy_clay(diameter, pile_length, N_SPT=layers[0]['N_SPT'], data_type="SPT Data")
+        lateral_capacity = calculate_lateral_bearing_capacity(diameter, pile_length, N_SPT=layers[0]['N_SPT'], data_type="SPT Data")
     elif data_type == 'Sondir Data':
-        lateral_capacity = calculate_lateral_bearing_capacity_sandy_clay(diameter, pile_length, cone_resistance=layers[0]['cone_resistance'], data_type="Sondir Data")
+        lateral_capacity = calculate_lateral_bearing_capacity(diameter, pile_length, cone_resistance=layers[0]['cone_resistance'], data_type="Sondir Data")
     
     bending_moment = calculate_bending_moment(lateral_capacity, pile_length)
     
