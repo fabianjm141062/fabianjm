@@ -30,12 +30,18 @@ heart_data['Gender'] = heart_data['Gender'].apply(lambda x: x if x in gender_opt
 heart_data['Has Diabetes'] = heart_data['Has Diabetes'].apply(lambda x: x if x in diabetes_options else 'No')
 heart_data['Chest Pain Type'] = heart_data['Chest Pain Type'].apply(lambda x: x if x in chest_pain_options else 'Typical Angina')
 
-# Apply label encoding
+# Encode the categorical features
 heart_data['Gender'] = encoder_gender.transform(heart_data['Gender'])
 heart_data['Has Diabetes'] = encoder_diabetes.transform(heart_data['Has Diabetes'])
 heart_data['Smoking Status'] = encoder_smoking_status.transform(heart_data['Smoking Status'])
 heart_data['Chest Pain Type'] = encoder_chest_pain.transform(heart_data['Chest Pain Type'])
-heart_data['Treatment'] = LabelEncoder().fit_transform(heart_data['Treatment'])
+
+# Encode the target (Treatment)
+encoder_treatment = LabelEncoder()
+heart_data['Treatment'] = encoder_treatment.fit_transform(heart_data['Treatment'])
+
+# Create a dictionary mapping of encoded treatment values to the original treatment names
+treatment_mapping = {i: label for i, label in enumerate(encoder_treatment.classes_)}
 
 # Define features and target
 X = heart_data.drop('Treatment', axis=1)  # Features
@@ -73,5 +79,7 @@ input_data = [[gender_encoded, age, blood_pressure, cholesterol, diabetes_encode
 
 # Make prediction
 if st.button("Predict"):
-    prediction = model.predict(input_data)
-    st.write(f"Predicted Treatment: {prediction[0]}")
+    prediction = model.predict(input_data)[0]
+    treatment_label = treatment_mapping[prediction]  # Get the human-readable treatment name
+    st.write(f"Predicted Treatment: {treatment_label}")
+
