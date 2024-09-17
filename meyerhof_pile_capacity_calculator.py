@@ -52,7 +52,7 @@ def calculate_bearing_capacity_cone(layers, diameter, pile_length):
     return bearing_capacity
 
 # Streamlit application interface
-st.title('Pile Foundation Bearing Capacity Calculator by Fabian J Manoppo')
+st.title('Pile Foundation Bearing Capacity Calculator Meyerhof Theory by Fabian J Manoppo')
 
 # Select type of data for input
 data_type = st.selectbox('Select Data Type:', ['Laboratory Data', 'NSPT Data', 'Dutch Cone Penetrometer Data'])
@@ -85,4 +85,20 @@ elif data_type == 'Dutch Cone Penetrometer Data':
         st.write(f"### Layer {i+1}")
         cone_resistance = st.number_input(f'Layer {i+1} - Cone Resistance (MPa):', min_value=0.1, max_value=50.0, value=10.0)
         unit_weight = st.number_input(f'Layer {i+1} - Unit Weight of Soil (kN/m³):', min_value=10.0, max_value=25.0, value=18.0)
+        depth = st.number_input(f'Layer {i+1} - Layer Depth (m):', min_value=0.1, max_value=30.0, value=1.0)
+        layers.append({'cone_resistance': cone_resistance, 'unit_weight': unit_weight, 'depth': depth})
 
+# Input for pile properties
+diameter = st.number_input('Diameter of the pile (m):', min_value=0.1, value=0.6, step=0.1)
+pile_length = st.number_input('Length of the pile (m):', min_value=1.0, value=6.0, step=1.0)
+
+# Calculate bearing capacity based on selected data type
+if st.button('Calculate Bearing Capacity'):
+    if data_type == 'Laboratory Data':
+        capacity = calculate_bearing_capacity_lab(layers, diameter, pile_length)
+    elif data_type == 'NSPT Data':
+        capacity = calculate_bearing_capacity_nspt(layers, diameter, pile_length)
+    elif data_type == 'Dutch Cone Penetrometer Data':
+        capacity = calculate_bearing_capacity_cone(layers, diameter, pile_length)
+    
+    st.success(f'The estimated load-bearing capacity of the pile is {capacity:.2f} kN')
