@@ -34,7 +34,7 @@ def show_hands(player_hands):
 
 # Fungsi utama untuk Streamlit
 def main():
-    st.title("Bridge Game with AI")
+    st.title("Bridge Game with AI oleh Fabian J Manoppo")
 
     # Inisialisasi game Bridge
     deck = create_deck()
