@@ -1,32 +1,34 @@
 import streamlit as st
 import chess
 import chess.svg
-from stockfish import Stockfish
+import requests
 
-# Path ke Stockfish engine di komputer Anda
-STOCKFISH_PATH = "/path/to/stockfish"
+# Lichess API token (buat token dari akun Lichess)
+API_TOKEN = "YOUR_LICHESS_API_TOKEN"
 
-# Inisialisasi Stockfish
-stockfish = Stockfish(STOCKFISH_PATH)
-stockfish.set_skill_level(20)  # Level tertinggi
+# Fungsi untuk mendapatkan langkah terbaik dari Stockfish via API Lichess
+def get_best_move(fen):
+    url = "https://lichess.org/api/cloud-eval"
+    params = {'fen': fen, 'multiPv': 1}
+    headers = {'Authorization': f'Bearer {API_TOKEN}'}
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code == 200:
+        return response.json()['pvs'][0]['moves']
+    else:
+        return "Error fetching best move"
 
 # Fungsi untuk menginisialisasi papan catur
 def initialize_game():
     return chess.Board()
 
-# Fungsi untuk menampilkan papan catur dalam format SVG
+# Fungsi untuk merender papan catur dalam format SVG
 def render_board(board):
     return chess.svg.board(board=board)
 
-# Fungsi untuk menjalankan langkah dari Stockfish
-def ai_move(board):
-    stockfish.set_fen_position(board.fen())
-    ai_move = stockfish.get_best_move()
-    board.push(chess.Move.from_uci(ai_move))
-
 # Aplikasi Streamlit
 def main():
-    st.title("AI Chess Game with Grandmaster Level (Stockfish) oleh Fabian J Manoppo")
+    st.title("AI Chess Game (Stockfish via Lichess API) oleh Fabian J Manoppo")
 
     # Inisialisasi game atau ambil state dari game
     if 'board' not in st.session_state:
@@ -44,7 +46,14 @@ def main():
             move = chess.Move.from_uci(user_move)
             if move in st.session_state.board.legal_moves:
                 st.session_state.board.push(move)  # Jalankan langkah pemain
-                ai_move(st.session_state.board)    # AI melakukan langkah
+
+                # Mendapatkan langkah terbaik dari Stockfish melalui API Lichess
+                fen = st.session_state.board.fen()
+                best_move = get_best_move(fen)
+                if "Error" not in best_move:
+                    st.session_state.board.push(chess.Move.from_uci(best_move.split()[0]))
+                else:
+                    st.error(best_move)
             else:
                 st.error("Langkah ilegal, coba lagi!")
         except:
