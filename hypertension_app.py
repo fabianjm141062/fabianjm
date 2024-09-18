@@ -16,9 +16,25 @@ def load_data():
         st.error(f"Error loading dataset: {e}")
         return None
 
+# Function to display information about each variable
+def display_variable_info(data, features):
+    st.write("### Variable Information")
+    for feature in features:
+        min_val = data[feature].min()
+        max_val = data[feature].max()
+        st.write(f"- **{feature}**: Range ({min_val} - {max_val})")
+        # You can add custom explanations here for each variable, e.g.:
+        if feature == 'Age':
+            st.write("  - Description: Age of the patient in years.")
+        elif feature == 'Blood Pressure':
+            st.write("  - Description: The systolic blood pressure of the patient in mmHg.")
+        elif feature == 'Cholesterol':
+            st.write("  - Description: Cholesterol level of the patient in mg/dL.")
+        # Add explanations for other variables in the same way
+
 # Main function to run the app
 def main():
-    st.title("Hypertension Prediction dengan AI oleh Fabian J Manoppo")
+    st.title("Hypertension Prediction with AI oleh Fabian J Manoppo")
     
     # Load and display the dataset
     data = load_data()
@@ -42,6 +58,9 @@ def main():
         else:
             # Handle missing values (if any) in the selected columns
             data = data[features + [target]].dropna()
+
+            # Display information about each variable (range, description)
+            display_variable_info(data, features)
             
             # Check for categorical columns and encode them
             for col in data[features].columns:
@@ -70,7 +89,10 @@ def main():
             st.write("### Enter Patient Data for Hypertension Prediction")
             user_input = []
             for feature in features:
-                value = st.number_input(f"Enter {feature}", min_value=float(X[feature].min()), max_value=float(X[feature].max()), value=float(X[feature].mean()))
+                value = st.number_input(f"Enter {feature} (Range: {X[feature].min()} - {X[feature].max()})", 
+                                        min_value=float(X[feature].min()), 
+                                        max_value=float(X[feature].max()), 
+                                        value=float(X[feature].mean()))
                 user_input.append(value)
             
             # Make prediction based on user input
