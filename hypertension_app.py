@@ -23,30 +23,48 @@ def display_variable_info(data, features):
         min_val = data[feature].min()
         max_val = data[feature].max()
         st.write(f"- **{feature}**: Range ({min_val} - {max_val})")
-        # You can add custom explanations here for each variable, e.g.:
-        if feature == 'Age':
-            st.write("  - Description: Age of the patient in years.")
-        elif feature == 'Blood Pressure':
-            st.write("  - Description: The systolic blood pressure of the patient in mmHg.")
-        elif feature == 'Cholesterol':
-            st.write("  - Description: Cholesterol level of the patient in mg/dL.")
-        # Add explanations for other variables in the same way
-
+        
+        # Add custom explanations for each variable
+        if feature == 'ca':
+            st.write("  - Full Name: Number of Major Vessels (0-4) Colored by Fluoroscopy")
+            st.write("  - Description: Number of major blood vessels colored by fluoroscopy.")
+        elif feature == 'cp':
+            st.write("  - Full Name: Chest Pain Type")
+            st.write("  - Description: 0: Typical Angina, 1: Atypical Angina, 2: Non-anginal Pain, 3: Asymptomatic")
+        elif feature == 'fbs':
+            st.write("  - Full Name: Fasting Blood Sugar")
+            st.write("  - Description: 1 if fasting blood sugar > 120 mg/dL, 0 otherwise.")
+        elif feature == 'restecg':
+            st.write("  - Full Name: Resting Electrocardiographic Results")
+            st.write("  - Description: 0: Normal, 1: ST-T abnormality, 2: Left ventricular hypertrophy.")
+        elif feature == 'slope':
+            st.write("  - Full Name: Slope of the Peak Exercise ST Segment")
+            st.write("  - Description: 0: Upsloping, 1: Flat, 2: Downsloping.")
+        elif feature == 'target':
+            st.write("  - Full Name: Heart Disease Diagnosis Indicator")
+            st.write("  - Description: 0: No heart disease, 1: Presence of heart disease.")
+        elif feature == 'thalach':
+            st.write("  - Full Name: Maximum Heart Rate Achieved")
+            st.write("  - Description: The maximum heart rate achieved during the test.")
+        elif feature == 'trestbps':
+            st.write("  - Full Name: Resting Blood Pressure (in mm Hg)")
+            st.write("  - Description: The resting blood pressure in mm Hg when admitted to the hospital.")
+            
 # Main function to run the app
 def main():
-    st.title("Hypertension Prediction with AI oleh Fabian J Manoppo")
-    
+    st.title("Hypertension Prediction with Machine Learning AI oleh Fabian J Manoppo")
+
     # Load and display the dataset
     data = load_data()
-    
+
     if data is not None:
         st.write("### Dataset Overview")
         st.write(data.head())
-        
+
         # Check if target column exists
         st.write("### Dataset Columns")
         st.write(data.columns)
-        
+
         # Let the user select the target column
         target = st.selectbox("Select the target column (Hypertension indicator)", data.columns)
 
@@ -61,7 +79,7 @@ def main():
 
             # Display information about each variable (range, description)
             display_variable_info(data, features)
-            
+
             # Check for categorical columns and encode them
             for col in data[features].columns:
                 if data[col].dtype == 'object':
@@ -94,7 +112,7 @@ def main():
                                         max_value=float(X[feature].max()), 
                                         value=float(X[feature].mean()))
                 user_input.append(value)
-            
+
             # Make prediction based on user input
             if st.button("Predict"):
                 input_data = pd.DataFrame([user_input], columns=features)
