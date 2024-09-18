@@ -37,7 +37,7 @@ def load_model():
 model, X_test, y_test = load_model()
 
 # Streamlit App Layout
-st.title("Wave Height Prediction Based on Wind Data")
+st.title("Wave Height Prediction Based on Wind Data oleh Fabian J Manoppo")
 
 # Input from the user
 st.subheader("Enter Wind Data")
