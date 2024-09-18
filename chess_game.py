@@ -26,7 +26,7 @@ def ai_move(board):
 
 # Aplikasi Streamlit
 def main():
-    st.title("AI Chess Game with Grandmaster Level (Stockfish)")
+    st.title("AI Chess Game with Grandmaster Level (Stockfish) oleh Fabian J Manoppo")
 
     # Inisialisasi game atau ambil state dari game
     if 'board' not in st.session_state:
