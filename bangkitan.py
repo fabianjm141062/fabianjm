@@ -5,7 +5,7 @@ import seaborn as sns
 import streamlit as st
 
 # Title of the app
-st.title('Gravity Model for Trip Distribution')
+st.title('Gravity Model for Trip Distribution oleh Fabian J Manoppo')
 
 # Input data
 st.header('Input Data')
