@@ -21,7 +21,7 @@ rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
 rf_model.fit(X, y)
 
 # Streamlit App
-st.title('Electricity Consumption Prediction Based on Population')
+st.title('Electricity Consumption Prediction Based on Population by Fabian J Manoppo')
 
 # User input for population value
 population_input = st.number_input('Input Population (Jumlah Penduduk)', value=float(data['Jumlah Penduduk'].mean()))
