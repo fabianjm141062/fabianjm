@@ -46,7 +46,7 @@ if st.button("Predict"):
     # Display the predicted results with units
     predicted_qa, predicted_sa, predicted_qh, predicted_yh, predicted_bm = predicted_values[0]
     st.write("Predicted values based on your inputs (with units):")
-    st.write(f"Predicted qa (kN/m²): {predicted_qa:.2f}")
+    st.write(f"Predicted qa (kN): {predicted_qa:.2f}")
     st.write(f"Predicted sa (mm): {predicted_sa:.2f}")
     st.write(f"Predicted qh (kN): {predicted_qh:.2f}")
     st.write(f"Predicted yh (mm): {predicted_yh:.2f}")
