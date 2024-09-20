@@ -1,41 +1,43 @@
 import streamlit as st
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
 # Load the RUED dataset
 data = pd.read_csv('datasetrued.csv')
 
-# Select relevant columns: Population and Electricity Consumption
-X = data[['Jumlah Penduduk']]
-y = data['Konsumsi Listrik Per Kapita']
+# Ensure the relevant columns are numeric
+data['Jumlah Penduduk'] = pd.to_numeric(data['Jumlah Penduduk'], errors='coerce')
+data['Konsumsi Listrik Per Kapita'] = pd.to_numeric(data['Konsumsi Listrik Per Kapita'], errors='coerce')
 
-# Handle missing or non-numeric values by dropping rows with any missing values
+# Drop rows where either column has missing or invalid data
 data_clean = data[['Jumlah Penduduk', 'Konsumsi Listrik Per Kapita']].dropna()
 
-# Reassign X and y to the cleaned dataset
+# Separate features (X) and target (y)
 X = data_clean[['Jumlah Penduduk']]
 y = data_clean['Konsumsi Listrik Per Kapita']
 
-# Train the RandomForest model
-rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
-rf_model.fit(X, y)
+# Train the Linear Regression model
+lr_model = LinearRegression()
+lr_model.fit(X, y)
 
 # Streamlit App
-st.title('Electricity Consumption Prediction Based on Population')
+st.title('Electricity Consumption Prediction Based on Population by Fabian J Manoppo')
 
 # User input for population value
 population_input = st.number_input('Input Population (Jumlah Penduduk)', value=float(data['Jumlah Penduduk'].mean()))
 
 # Make prediction
 if st.button('Predict'):
-    prediction = rf_model.predict([[population_input]])
+    prediction = lr_model.predict([[population_input]])
     st.write(f'Predicted Electricity Consumption Per Capita: {prediction[0]} kWh')
 
-# Feature importance (though in this case we only have one feature: Population)
-importances = rf_model.feature_importances_
-plt.figure(figsize=(6, 4))
-plt.barh(['Jumlah Penduduk'], importances, align='center')
-plt.xlabel('Feature Importance')
-plt.title('Feature Importance for Electricity Consumption Prediction')
+# Plot the regression line
+plt.figure(figsize=(8, 6))
+plt.scatter(X, y, color='blue', label='Actual Data')
+plt.plot(X, lr_model.predict(X), color='red', label='Regression Line')
+plt.xlabel('Population (Jumlah Penduduk)')
+plt.ylabel('Electricity Consumption Per Capita (kWh)')
+plt.title('Linear Regression: Population vs Electricity Consumption')
+plt.legend()
 st.pyplot(plt)
