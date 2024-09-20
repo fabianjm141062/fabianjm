@@ -12,14 +12,23 @@ def load_data():
     return data
 
 # Load dataset
-st.title("Student Dropout and Study Duration Prediction App")
-st.write("This app uses a Random Forest model to predict student dropout and study duration.")
+st.title("Student Dropout and Study Duration Prediction with Machine Learning by Fabian J Manoppo")
+st.write("This app uses a dataset mahasiswa Fakultas Teknik Unsrat Manado to predict student dropout and study duration.")
 
 data = load_data()
 
-# Show the dataset
-if st.checkbox('Show Dataset'):
-    st.write(data)
+# Show a sample of 4 data points
+st.write("Displaying 4 random rows from the dataset:")
+sample_data = data.sample(4)
+st.write(sample_data)
+
+# Provide an option to download the 4 sample rows as CSV
+st.download_button(
+    label="Download sample data as CSV",
+    data=sample_data.to_csv(index=False),
+    file_name='sample_datamahasiswa.csv',
+    mime='text/csv'
+)
 
 # Add "tahun_lulus" as a feature by calculating it from the duration of study (for demo purposes)
 # Assuming 'lama_studi' is years, we add it to the admission year to calculate "tahun_lulus"
