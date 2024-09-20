@@ -3,13 +3,13 @@ import math
 
 # Functions for bearing capacity calculation with unit conversions
 def terzaghi_bearing_capacity(c, gamma, B, D_f, N_c, N_q, N_gamma):
-    # Converting gamma from kg/cm³ to kg/cm² (1 kg/cm³ = 10000 kg/m³ and 1 kg/m³ = 0.000102 kg/cm²)
-    gamma = gamma * 0.000102 * 10000
+    # Converting gamma from ton/m³ to kg/cm² (1 kg/cm³ = 10000 kg/cm³ and 1 kg/m³ = 0.000102 kg/cm²)
+    gamma = gamma 
     return (c * N_c) + (gamma * D_f * N_q) + (0.5 * gamma * B * N_gamma)
 
 def meyerhof_bearing_capacity(c, gamma, B, D_f, N_c, N_q, N_gamma, s_c, s_q, s_gamma):
     # Converting gamma from kg/cm³ to kg/cm²
-    gamma = gamma * 0.000102 * 10000
+    gamma = gamma 
     return (c * N_c * s_c) + (gamma * D_f * N_q * s_q) + (0.5 * gamma * B * N_gamma * s_gamma)
 
 # Bearing capacity factors (simplified example)
@@ -32,21 +32,21 @@ calculation_method = st.selectbox('Select Calculation Method', ['Terzaghi', 'Mey
 if data_source == 'Laboratory Data':
     st.subheader("Input Data from Laboratory Tests")
     phi = st.number_input("Angle of internal friction (degrees)", min_value=0.0, max_value=50.0, step=0.1)
-    c = st.number_input("Cohesion (kg/cm²)", min_value=0.0, max_value=10.0, step=0.1)
-    gamma = st.number_input("Unit weight of soil (kg/cm³)", min_value=0.001, max_value=0.025, step=0.001)
+    c = st.number_input("Cohesion (kg/cm2)", min_value=0.0, max_value=50.0, step=0.1)
+    gamma = st.number_input("Unit weight of soil (kg/cm³)", min_value=0.5, max_value=2.5, step=0.001)
 
 elif data_source == 'Sondir Data':
     st.subheader("Input Data from Sondir (Cone Penetration Test)")
-    qc = st.number_input("Cone resistance (Sondir, kg/cm²)", min_value=0.0, max_value=100.0, step=0.1)
-    gamma = st.number_input("Unit weight of soil (kg/cm³)", min_value=0.001, max_value=0.025, step=0.001)
+    qc = st.number_input("Cone resistance (Sondir, kg/cm²)", min_value=0.0, max_value=250.0, step=0.1)
+    gamma = st.number_input("Unit weight of soil (kg/cm³)", min_value=0.5, max_value=2.5, step=0.001)
     # Approximate method: Estimate cohesion and friction angle from qc
     c = qc / 10  # Simplification; actual formula depends on soil type
     phi = 30     # Assumed based on qc; can be updated with better correlation
 
 elif data_source == 'SPT Data':
     st.subheader("Input Data from SPT (Standard Penetration Test)")
-    N_spt = st.number_input("SPT N-value", min_value=0, max_value=50, step=1)
-    gamma = st.number_input("Unit weight of soil (kg/cm³)", min_value=0.001, max_value=0.025, step=0.001)
+    N_spt = st.number_input("SPT N-value", min_value=0, max_value=60, step=1)
+    gamma = st.number_input("Unit weight of soil (kg/cm³)", min_value=0.5, max_value=2.5, step=0.001)
     # Approximate method: Estimate cohesion and friction angle from SPT N-value
     c = N_spt / 5  # Simplification; use specific empirical equations
     phi = 28       # Assumed based on SPT N-value; can be updated with better correlation
