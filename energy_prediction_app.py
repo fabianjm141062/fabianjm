@@ -10,18 +10,19 @@ data = pd.read_csv('datasetrued.csv')
 X = data[['Jumlah Penduduk']]
 y = data['Konsumsi Listrik Per Kapita']
 
-# Handle missing or non-numeric values
-if X.isnull().values.any() or y.isnull().values.any():
-    st.write("Handling missing values...")
-    X = X.dropna()
-    y = y.dropna()
+# Handle missing or non-numeric values by dropping rows with any missing values
+data_clean = data[['Jumlah Penduduk', 'Konsumsi Listrik Per Kapita']].dropna()
+
+# Reassign X and y to the cleaned dataset
+X = data_clean[['Jumlah Penduduk']]
+y = data_clean['Konsumsi Listrik Per Kapita']
 
 # Train the RandomForest model
 rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
 rf_model.fit(X, y)
 
 # Streamlit App
-st.title('Electricity Consumption Prediction Based on Population by Fabian J Manoppo')
+st.title('Electricity Consumption Prediction Based on Population')
 
 # User input for population value
 population_input = st.number_input('Input Population (Jumlah Penduduk)', value=float(data['Jumlah Penduduk'].mean()))
