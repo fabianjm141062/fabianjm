@@ -22,7 +22,7 @@ lr_model = LinearRegression()
 lr_model.fit(X, y)
 
 # Streamlit App
-st.title('Electricity Consumption Prediction Based on Population by Fabian J Manoppo')
+st.title('Electricity Consumption Prediction Based on Population in North Sulawesi by Fabian J Manoppo')
 
 # User input for population value
 population_input = st.number_input('Input Population (Jumlah Penduduk)', value=float(data['Jumlah Penduduk'].mean()))
