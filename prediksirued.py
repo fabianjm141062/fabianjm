@@ -6,12 +6,16 @@ import matplotlib.pyplot as plt
 # Load the RUED dataset
 data = pd.read_csv('datasetrued.csv')
 
-# Handle missing values if any
-data = data.dropna()
+# Check column names
+st.write("Available columns in the dataset:", data.columns)
 
-# Separate features and target
-X = data.drop(columns=['Year'])
-y = data['Year']
+# Try to drop the 'Year' column if it exists
+if 'Year' in data.columns:
+    X = data.drop(columns=['Year'])
+    y = data['Year']
+else:
+    st.error("'Year' column not found in the dataset.")
+    st.stop()  # Stop execution if the target column is not found
 
 # Train the RandomForest model
 rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
