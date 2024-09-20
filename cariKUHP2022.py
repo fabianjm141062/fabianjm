@@ -13,7 +13,7 @@ def search_kuhp(data, keyword):
 
 # Program utama Streamlit
 def main():
-    st.title("Search Engine KUHP 2022 by Fabian J Manoppo")
+    st.title("Search Engine KUHP 2022 hanya utk keperluan pendidikan by Fabian J Manoppo")
     st.write("Cari pasal dan ayat dalam KUHP 2022 berdasarkan kata kunci.")
     
     # Memuat dataset
@@ -26,7 +26,10 @@ def main():
         hasil = search_kuhp(data, keyword)
         if not hasil.empty:
             st.write(f"Ditemukan {len(hasil)} pasal yang sesuai dengan kata kunci '{keyword}':")
-            st.dataframe(hasil[['Pasal', 'Isi']])
+            # Loop through results and display each pasal in a markdown format
+            for index, row in hasil.iterrows():
+                st.markdown(f"### {row['Pasal']}")
+                st.markdown(f"{row['Isi']}")
         else:
             st.write(f"Tidak ditemukan pasal yang sesuai dengan kata kunci '{keyword}'.")
 
