@@ -2,60 +2,67 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
-import numpy as np
 
-# Load the dataset (replace 'dataset_rued_sulut.csv' with your actual dataset path)
-data = pd.read_csv('dataset_rued_sulut.csv')
+# Load the dataset
+data = pd.read_csv('dataset_rued_sulut _new.csv')
 
-# Preprocessing: handle missing values, convert columns to numeric
-data.fillna(0, inplace=True)  # Handle missing values
-data['Jumlah Penduduk'] = pd.to_numeric(data['Jumlah Penduduk'], errors='coerce')
-data['Pertumbuhan Industri'] = pd.to_numeric(data['Pertumbuhan Industri'], errors='coerce')
-data['Energi Terbarukan'] = pd.to_numeric(data['Energi Terbarukan'], errors='coerce')
-data['Energi Fosil'] = pd.to_numeric(data['Energi Fosil'], errors='coerce')
+# Ensure the relevant columns are numeric
+data = data.apply(pd.to_numeric, errors='coerce')
 
-# Define the target variable and features
-X = data[['Jumlah Penduduk', 'Pertumbuhan Industri']]
-y_renewable = data['Energi Terbarukan']
-y_fossil = data['Energi Fosil']
+# Show available columns to the user
+st.write("Available Columns in the Dataset:")
+st.write(data.columns)
 
-# Train a RandomForest model for both renewable and fossil energy predictions
-rf_renewable = RandomForestRegressor(n_estimators=100, random_state=42)
-rf_fossil = RandomForestRegressor(n_estimators=100, random_state=42)
-rf_renewable.fit(X, y_renewable)
-rf_fossil.fit(X, y_fossil)
+# Select features for prediction
+features = st.multiselect('Select Features for Prediction:', list(data.columns))
 
-# Streamlit App
-st.title('Prediksi Kebutuhan Energi: Terbarukan vs Fosil by Fabian J Manoppo')
+# Select year for prediction
+years = data['Year'].unique()
+selected_year = st.selectbox('Select Year:', years)
 
-# User input for population and industry growth
-population_input = st.number_input('Masukkan Jumlah Penduduk:', value=float(data['Jumlah Penduduk'].mean()))
-industry_input = st.number_input('Masukkan Pertumbuhan Industri (%):', value=float(data['Pertumbuhan Industri'].mean()))
+# Filter dataset by the selected year
+filtered_data = data[data['Year'] == selected_year]
 
-# Predict energy requirements
-if st.button('Prediksi'):
-    prediction_renewable = rf_renewable.predict([[population_input, industry_input]])
-    prediction_fossil = rf_fossil.predict([[population_input, industry_input]])
-    ratio = prediction_renewable[0] / (prediction_fossil[0] + 1e-5)  # To avoid division by zero
+# Check if the user has selected enough features for prediction
+if len(features) >= 1:
+    X = filtered_data[features]
+    y_renewable = filtered_data['Energi Terbarukan']
+    y_fossil = filtered_data['Energi Fosil']
 
-    st.write(f'Prediksi Energi Terbarukan: {prediction_renewable[0]:.2f} TOE')
-    st.write(f'Prediksi Energi Fosil: {prediction_fossil[0]:.2f} TOE')
-    st.write(f'Rasio Energi Terbarukan/Fosil: {ratio:.2f}')
+    # Train the RandomForest models
+    rf_renewable = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_fossil = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_renewable.fit(X, y_renewable)
+    rf_fossil.fit(X, y_fossil)
 
-    # Visualization
-    labels = ['Energi Terbarukan', 'Energi Fosil']
-    values = [prediction_renewable[0], prediction_fossil[0]]
-    plt.figure(figsize=(8, 6))
-    plt.pie(values, labels=labels, autopct='%1.1f%%', colors=['green', 'gray'])
-    plt.title('Rasio Kebutuhan Energi Terbarukan vs Fosil')
-    st.pyplot(plt)
+    # Input for user to predict energy needs
+    st.write(f"Enter values for the selected features for the year {selected_year}:")
+    input_values = [st.number_input(f'Input {feature}', value=float(filtered_data[feature].mean())) for feature in features]
 
-# Create a scatter plot showing energy needs based on population and industry growth
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.scatter(data['Jumlah Penduduk'], data['Energi Terbarukan'], color='green', label='Energi Terbarukan')
-ax.scatter(data['Jumlah Penduduk'], data['Energi Fosil'], color='gray', label='Energi Fosil')
-ax.set_xlabel('Jumlah Penduduk')
-ax.set_ylabel('Kebutuhan Energi (TOE)')
-ax.set_title('Hubungan Kebutuhan Energi dengan Jumlah Penduduk dan Industri')
-ax.legend()
-st.pyplot(fig)
+    if st.button('Predict'):
+        renewable_pred = rf_renewable.predict([input_values])[0]
+        fossil_pred = rf_fossil.predict([input_values])[0]
+
+        # Show the predictions
+        st.write(f"Predicted Renewable Energy Need: {renewable_pred:.2f} TOE")
+        st.write(f"Predicted Fossil Energy Need: {fossil_pred:.2f} TOE")
+
+        # Create a pie chart for energy sources
+        labels = ['Energi Terbarukan', 'Energi Fosil']
+        values = [renewable_pred, fossil_pred]
+        plt.figure(figsize=(6, 6))
+        plt.pie(values, labels=labels, autopct='%1.1f%%', colors=['green', 'gray'])
+        plt.title(f'Energy Source Distribution for {selected_year}')
+        st.pyplot(plt)
+
+        # Create a bar chart for electricity demand and energy sources
+        fig, ax = plt.subplots(figsize=(10, 6))
+        ax.bar(['Electricity Demand'], [filtered_data['Electricity Demand'].mean()], color='blue', label='Electricity Demand')
+        ax.bar(['Energi Terbarukan'], [renewable_pred], color='green', label='Energi Terbarukan')
+        ax.bar(['Energi Fosil'], [fossil_pred], color='gray', label='Energi Fosil')
+        ax.set_ylabel('Energy (TOE)')
+        ax.set_title(f'Electricity Demand and Energy Sources for {selected_year}')
+        ax.legend()
+        st.pyplot(fig)
+else:
+    st.write("Please select at least one feature for prediction.")
