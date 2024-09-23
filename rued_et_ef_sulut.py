@@ -17,7 +17,7 @@ st.write(data.columns)
 features = st.multiselect('Select Features for Prediction:', list(data.columns))
 
 # Select year for prediction
-years = data['Year'].unique()
+years = data['year'].unique()
 selected_year = st.selectbox('Select Year:', years)
 
 # Filter dataset by the selected year
