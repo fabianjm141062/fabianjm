@@ -16,9 +16,12 @@ year_column = st.selectbox("Please select the Year column:", data.columns)
 # Select features for prediction
 features = st.multiselect('Select Features for Prediction:', list(data.columns))
 
-# Select the column for renewable energy and fossil energy from the table
+# Select the column for renewable energy and fossil energy
 renewable_column = st.selectbox("Please select the Renewable Energy column:", data.columns)
 fossil_column = st.selectbox("Please select the Fossil Energy column:", data.columns)
+
+# Select the column for electricity demand
+electricity_demand_column = st.selectbox("Please select the Electricity Demand column:", data.columns)
 
 # Select year for prediction
 years = data[year_column].unique()
@@ -61,7 +64,7 @@ if len(features) >= 1:
 
         # Create a bar chart for electricity demand and energy sources
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.bar(['Electricity Demand'], [filtered_data['Electricity Demand'].mean()], color='blue', label='Electricity Demand')
+        ax.bar(['Electricity Demand'], [filtered_data[electricity_demand_column].mean()], color='blue', label='Electricity Demand')
         ax.bar(['Energi Terbarukan'], [renewable_pred], color='green', label='Energi Terbarukan')
         ax.bar(['Energi Fosil'], [fossil_pred], color='gray', label='Energi Fosil')
         ax.set_ylabel('Energy (TOE)')
