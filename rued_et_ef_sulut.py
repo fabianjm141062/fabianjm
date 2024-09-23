@@ -6,22 +6,25 @@ import matplotlib.pyplot as plt
 # Load the dataset
 data = pd.read_csv('dataset_rued_sulut _new.csv')
 
-# Ensure the relevant columns are numeric
-data = data.apply(pd.to_numeric, errors='coerce')
-
-# Show available columns to the user
-st.write("Available Columns in the Dataset:")
+# Display the available columns in the dataset
+st.write("Available Columns in Dataset:")
 st.write(data.columns)
+
+# Ask the user to select the column representing the year if 'Year' is not found
+year_column = st.selectbox("Please select the Year column:", data.columns)
+
+# Ensure the selected column is numeric and handle missing values
+data[year_column] = pd.to_numeric(data[year_column], errors='coerce')
 
 # Select features for prediction
 features = st.multiselect('Select Features for Prediction:', list(data.columns))
 
 # Select year for prediction
-years = data['year'].unique()
+years = data[year_column].unique()
 selected_year = st.selectbox('Select Year:', years)
 
 # Filter dataset by the selected year
-filtered_data = data[data['Year'] == selected_year]
+filtered_data = data[data[year_column] == selected_year]
 
 # Check if the user has selected enough features for prediction
 if len(features) >= 1:
