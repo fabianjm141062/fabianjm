@@ -10,14 +10,15 @@ data = pd.read_csv('dataset_rued_sulut _new.csv')
 st.write("Available Columns in Dataset:")
 st.write(data.columns)
 
-# Ask the user to select the column representing the year if 'Year' is not found
+# Ask the user to select the column representing the year
 year_column = st.selectbox("Please select the Year column:", data.columns)
-
-# Ensure the selected column is numeric and handle missing values
-data[year_column] = pd.to_numeric(data[year_column], errors='coerce')
 
 # Select features for prediction
 features = st.multiselect('Select Features for Prediction:', list(data.columns))
+
+# Select the column for renewable energy and fossil energy from the table
+renewable_column = st.selectbox("Please select the Renewable Energy column:", data.columns)
+fossil_column = st.selectbox("Please select the Fossil Energy column:", data.columns)
 
 # Select year for prediction
 years = data[year_column].unique()
@@ -29,8 +30,8 @@ filtered_data = data[data[year_column] == selected_year]
 # Check if the user has selected enough features for prediction
 if len(features) >= 1:
     X = filtered_data[features]
-    y_renewable = filtered_data['Energi Terbarukan']
-    y_fossil = filtered_data['Energi Fosil']
+    y_renewable = filtered_data[renewable_column]
+    y_fossil = filtered_data[fossil_column]
 
     # Train the RandomForest models
     rf_renewable = RandomForestRegressor(n_estimators=100, random_state=42)
