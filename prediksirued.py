@@ -4,7 +4,7 @@ from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 
 # Load the RUED dataset
-data = pd.read_csv('dataset_rued_sulut_new.csv')
+data = pd.read_csv('datasetrued.csv')
 
 # Check column names
 st.write("Available columns in the dataset:", data.columns)
