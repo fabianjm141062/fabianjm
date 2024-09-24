@@ -22,7 +22,7 @@ rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
 rf_model.fit(X, y)
 
 # Streamlit App
-st.title('RUED Prediction Using RandomForest')
+st.title('RUED Prediction Using Machine Learning by Fabian J Manoppo')
 
 # User inputs for all features
 input_data = []
