@@ -13,14 +13,10 @@ st.write(data.columns)
 # Ask the user to select the column representing the year
 year_column = st.selectbox("Please select the Year column:", data.columns)
 
-# Select features for prediction
-features = st.multiselect('Select Features for Prediction:', list(data.columns))
+# Select features for prediction (Pendapatan Per Kapita, Jumlah Penduduk, etc.)
+features = st.multiselect('Select Features for Prediction (e.g., Per Capita Income, Population):', list(data.columns))
 
-# Select the column for renewable energy and fossil energy
-renewable_column = st.selectbox("Please select the Renewable Energy column:", data.columns)
-fossil_column = st.selectbox("Please select the Fossil Energy column:", data.columns)
-
-# Select the column for electricity demand
+# Select the column for electricity demand as the target
 electricity_demand_column = st.selectbox("Please select the Electricity Demand column:", data.columns)
 
 # Select year for prediction
@@ -33,43 +29,39 @@ filtered_data = data[data[year_column] == selected_year]
 # Check if the user has selected enough features for prediction
 if len(features) >= 1:
     X = filtered_data[features]
-    y_renewable = filtered_data[renewable_column]
-    y_fossil = filtered_data[fossil_column]
+    y_electricity = filtered_data[electricity_demand_column]
 
-    # Train the RandomForest models
-    rf_renewable = RandomForestRegressor(n_estimators=100, random_state=42)
-    rf_fossil = RandomForestRegressor(n_estimators=100, random_state=42)
-    rf_renewable.fit(X, y_renewable)
-    rf_fossil.fit(X, y_fossil)
+    # Train the RandomForest model
+    rf_electricity = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_electricity.fit(X, y_electricity)
 
-    # Input for user to predict energy needs
+    # Input for user to predict electricity demand
     st.write(f"Enter values for the selected features for the year {selected_year}:")
     input_values = [st.number_input(f'Input {feature}', value=float(filtered_data[feature].mean())) for feature in features]
 
     if st.button('Predict'):
-        renewable_pred = rf_renewable.predict([input_values])[0]
-        fossil_pred = rf_fossil.predict([input_values])[0]
+        electricity_pred = rf_electricity.predict([input_values])[0]
 
-        # Show the predictions
-        st.write(f"Predicted Renewable Energy Need: {renewable_pred:.2f} TOE")
-        st.write(f"Predicted Fossil Energy Need: {fossil_pred:.2f} TOE")
+        # Show the prediction
+        st.write(f"Predicted Electricity Demand: {electricity_pred:.2f} TOE")
 
-        # Create a pie chart for energy sources
-        labels = ['Energi Terbarukan', 'Energi Fosil']
-        values = [renewable_pred, fossil_pred]
-        plt.figure(figsize=(6, 6))
-        plt.pie(values, labels=labels, autopct='%1.1f%%', colors=['green', 'gray'])
-        plt.title(f'Energy Source Distribution for {selected_year}')
-        st.pyplot(plt)
-
-        # Create a bar chart for electricity demand and energy sources
+        # Create a bar chart for electricity demand
         fig, ax = plt.subplots(figsize=(10, 6))
-        ax.bar(['Electricity Demand'], [filtered_data[electricity_demand_column].mean()], color='blue', label='Electricity Demand')
-        ax.bar(['Energi Terbarukan'], [renewable_pred], color='green', label='Energi Terbarukan')
-        ax.bar(['Energi Fosil'], [fossil_pred], color='gray', label='Energi Fosil')
+        ax.bar(['Predicted Electricity Demand'], [electricity_pred], color='blue', label='Electricity Demand')
         ax.set_ylabel('Energy (TOE)')
-        ax.set_title(f'Electricity Demand and Energy Sources for {selected_year}')
+        ax.set_title(f'Electricity Demand for {selected_year}')
         ax.legend()
+        st.pyplot(fig)
+
+        # Feature importance for electricity demand
+        electricity_importances = rf_electricity.feature_importances_
+
+        # Display feature importances for electricity demand
+        st.write("Feature Importance for Electricity Demand Prediction:")
+        fig, ax = plt.subplots()
+        ax.barh(features, electricity_importances, color='blue')
+        ax.set_xlabel('Importance')
+        ax.set_title('Feature Importance for Electricity Demand Prediction')
         st.pyplot(fig)
 else:
     st.write("Please select at least one feature for prediction.")
