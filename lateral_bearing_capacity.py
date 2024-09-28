@@ -21,7 +21,7 @@ def tangent_modulus_method(Y, Q):
     for i, slope in enumerate(slopes):
         if abs(slope) < threshold:
             return Q[i]
-    return Q[-1]  # Return last load if no flattening is detected
+    return Q[-1]
 
 # 3. Chin-Kondner Extrapolation Method
 def chin_method(Y, Q):
@@ -33,11 +33,22 @@ def chin_method(Y, Q):
 
 # 4. Mazurkiwich Method (Quadratic Fitting)
 def mazurkiwich_method(Y, Q):
-    popt, _ = np.polyfit(Y, Q, 2, full=False)
-    a, b, c = popt
-    if a != 0:
-        return -b / (2 * a)  # Maximum point of the quadratic equation
-    return Q[-1]  # Return last load if quadratic fitting fails
+    try:
+        # Check if deflection and load arrays are non-empty and numeric
+        if len(Y) < 3 or len(Q) < 3:
+            return None  # Polyfit requires at least 3 points for a quadratic fit
+        
+        # Attempt a quadratic fit
+        popt, _ = np.polyfit(Y, Q, 2, full=False)
+        a, b, c = popt  # coefficients of the quadratic equation
+        if a != 0:
+            return -b / (2 * a)  # Maximum point of the quadratic equation (the ultimate capacity)
+        else:
+            return Q[-1]  # Return the last load if quadratic fitting doesn't work
+    except Exception as e:
+        # Handle any exception that occurs during polyfit
+        print(f"Error in Mazurkiwich method: {str(e)}")
+        return None
 
 # Function to apply all methods
 def apply_methods(Y, Q):
@@ -49,9 +60,9 @@ def apply_methods(Y, Q):
     return results
 
 # Streamlit Interface for Lateral Bearing Capacity Prediction
-st.title("Lateral Bearing Capacity Prediction for Piles from loading test by Fabian J Manoppo")
+st.title("Lateral Bearing Capacity Prediction for pile loading test with machine learning AI data by Fabian J Manoppo")
 
-st.write("This app predicts the lateral bearing capacity of vertical, positive, and negative batter piles using different methods.")
+st.write("This app predicts the lateral bearing capacity of vertical, positive, and negative batter piles using Manoppo & Koumoto,Tangent Modulus,Chin Method,Mazurkiwich Method  methods.")
 
 # Input Section for Lateral Bearing Capacity
 st.subheader("Input Pile Data (Lateral Loads)")
@@ -68,6 +79,8 @@ load = [float(x) for x in load_data.split(",")]
 if st.button("Predict Lateral Bearing Capacity"):
     if len(deflection) != len(load):
         st.error("Deflection and Load data must have the same length.")
+    elif len(deflection) < 3:
+        st.error("Need at least 3 data points for the Mazurkiwich Method.")
     else:
         # Apply the methods
         lateral_capacities = apply_methods(deflection, load)
@@ -84,3 +97,4 @@ if st.button("Predict Lateral Bearing Capacity"):
 # 1. Save this code to a Python file (e.g., `streamlit_lateral_pile_app.py`)
 # 2. Run the Streamlit app by typing in the terminal:
 #    streamlit run streamlit_lateral_pile_app.py
+
