@@ -34,7 +34,7 @@ selected_stock = st.sidebar.selectbox("Choose a stock", list(stock_options.keys(
 stock_ticker = stock_options[selected_stock]
 
 # Define the number of future days to predict
-num_days = 30  # Set to predict for the next 30 days
+num_days = 60  # Set to predict for the next 60 days
 
 # Automatically load stock data and preprocess it
 st.subheader(f"Stock data for {selected_stock}")
