@@ -21,7 +21,7 @@ st.sidebar.subheader("Stock Selection")
 stock_ticker = st.sidebar.text_input("Enter the stock ticker (e.g., AAPL for Apple, TLKM.JK for Telkom Indonesia)", value="AAPL")
 
 # Input for number of days to predict
-num_days = st.sidebar.number_input("Number of future days to predict", min_value=1, max_value=365, value=30)
+num_days = st.sidebar.number_input("Number of future days to predict", min_value=1, max_value=365, value=60)
 
 # Load stock data
 st.subheader(f"Stock data for {stock_ticker}")
