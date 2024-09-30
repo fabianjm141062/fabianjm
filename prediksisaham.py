@@ -33,64 +33,56 @@ stock_options = {
 selected_stock = st.sidebar.selectbox("Choose a stock", list(stock_options.keys()))
 stock_ticker = stock_options[selected_stock]
 
-# Number of future days is fixed at 30 days
-num_days = 30
+# Automatically load stock data and preprocess it
+st.subheader(f"Stock data for {selected_stock}")
+data = load_stock_data(stock_ticker)
+st.write(data.tail())
 
-# Lazy loading of data
-if st.button('Load Data'):
-    st.subheader(f"Stock data for {selected_stock}")
-    data = load_stock_data(stock_ticker)
-    st.write(data.tail())
+# Preprocessing the data
+data_close = data[['Close']].values
+scaler = MinMaxScaler(feature_range=(0, 1))
+scaled_data = scaler.fit_transform(data_close)
 
-    # Preprocessing the data
-    data_close = data[['Close']].values
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    scaled_data = scaler.fit_transform(data_close)
+# Split the data into training and test sets
+train_size = int(len(scaled_data) * 0.8)
+train_data = scaled_data[:train_size]
+test_data = scaled_data[train_size:]
 
-    # Split the data into training and test sets
-    train_size = int(len(scaled_data) * 0.8)
-    train_data = scaled_data[:train_size]
-    test_data = scaled_data[train_size:]
+# Function to create dataset for LSTM
+def create_dataset(dataset, time_step=60):
+    X, y = [], []
+    for i in range(len(dataset) - time_step - 1):
+        X.append(dataset[i:(i + time_step), 0])
+        y.append(dataset[i + time_step, 0])
+    return np.array(X), np.array(y)
 
-    # Function to create dataset for LSTM
-    def create_dataset(dataset, time_step=60):
-        X, y = [], []
-        for i in range(len(dataset) - time_step - 1):
-            X.append(dataset[i:(i + time_step), 0])
-            y.append(dataset[i + time_step, 0])
-        return np.array(X), np.array(y)
+# Create the LSTM training dataset
+time_step = 60
+X_train, y_train = create_dataset(train_data, time_step)
+X_test, y_test = create_dataset(test_data, time_step)
 
-    # Create the LSTM training dataset
-    time_step = 60
-    X_train, y_train = create_dataset(train_data, time_step)
-    X_test, y_test = create_dataset(test_data, time_step)
+# Reshape the input to be [samples, time steps, features] for LSTM
+X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
-    # Reshape the input to be [samples, time steps, features] for LSTM
-    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-    X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+# Build a simpler LSTM model to avoid resource issues
+model = Sequential()
+model.add(LSTM(32, return_sequences=False, input_shape=(time_step, 1)))  # Correct input shape (time_steps, features)
+model.add(Dense(16))  # Simpler model with fewer neurons
+model.add(Dense(1))
 
-    # Display data shape
-    st.write(f"X_train shape: {X_train.shape}")
-    st.write(f"y_train shape: {y_train.shape}")
+# Compile the model
+model.compile(optimizer='adam', loss='mean_squared_error')
 
-if st.button('Train Model'):
-    # Build a simpler LSTM model to avoid resource issues
-    model = Sequential()
-    model.add(LSTM(32, return_sequences=False, input_shape=(time_step, 1)))  # Fewer neurons
-    model.add(Dense(16))  # Simpler model with fewer neurons
-    model.add(Dense(1))
+# Train the model
+with st.spinner('Training the model...'):
+    try:
+        model.fit(X_train, y_train, batch_size=10, epochs=2)  # Reduced batch size and epochs
+        st.success("Model training completed successfully.")
+    except Exception as e:
+        st.error(f"Error during model training: {e}")
 
-    # Compile the model
-    model.compile(optimizer='adam', loss='mean_squared_error')
-
-    # Train the model with a spinner
-    with st.spinner('Training the model...'):
-        try:
-            model.fit(X_train, y_train, batch_size=10, epochs=2)  # Reduced batch size and epochs
-            st.success("Model training completed successfully.")
-        except Exception as e:
-            st.error(f"Error during model training: {e}")
-
+# Prediction button to trigger predictions
 if st.button('Run Predictions'):
     # Predict on the test set
     predictions = model.predict(X_test)
