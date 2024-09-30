@@ -129,4 +129,8 @@ if st.button('Run Predictions'):
 
     # Plot future predictions
     fig2, ax2 = plt.subplots(figsize=(10, 6))
-    ax2.plot(future_dates, future
+    ax2.plot(future_dates, future_predictions, label='Predicted Prices', color='red')
+    ax2.set_xlabel("Date")
+    ax2.set_ylabel("Price in USD")
+    ax2.legend()
+    st.pyplot(fig2)
