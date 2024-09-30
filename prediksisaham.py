@@ -14,7 +14,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 # Function to fetch stock data from Yahoo Finance
 def load_stock_data(ticker):
-    data = yf.download(ticker, start="2010-01-01", end="2024-12-31")
+    data = yf.download(ticker, start="2019-01-01", end="2024-12-31")
     return data
 
 # Title of the app
