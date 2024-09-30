@@ -102,19 +102,29 @@ try:
 except Exception as e:
     st.error(f"Error during model evaluation: {e}")
 
-# Plot actual vs predicted stock prices
-st.subheader(f"Stock closing price prediction for {selected_stock}")
-fig, ax = plt.subplots(figsize=(10, 6))
+# 1. Plot actual Yahoo Finance stock prices (without predictions)
+st.subheader(f"Actual Stock Price for {selected_stock} from Yahoo Finance")
+fig1, ax1 = plt.subplots(figsize=(10, 6))
 train_data_plot = data['Close'][:train_size]
 test_data_plot = data['Close'][train_size:]
-ax.plot(data.index[:train_size], train_data_plot, label='Training Data', color='blue')
-ax.plot(data.index[train_size:], test_data_plot, label='Actual Prices', color='green')
-ax.plot(data.index[train_size + time_step + 1:], predictions, label='Predicted Prices', color='red')
-ax.set_xlabel("Date")
-ax.set_ylabel("Price in USD")
-ax.set_title(f"Actual vs Predicted Prices for {selected_stock}")
-ax.legend()
-st.pyplot(fig)
+ax1.plot(data.index[:train_size], train_data_plot, label='Training Data', color='blue')
+ax1.plot(data.index[train_size:], test_data_plot, label='Test Data', color='green')
+ax1.set_xlabel("Date")
+ax1.set_ylabel("Price in USD")
+ax1.set_title(f"Yahoo Finance Stock Price for {selected_stock}")
+ax1.legend()
+st.pyplot(fig1)
+
+# 2. Plot predicted stock prices (from LSTM model)
+st.subheader(f"Predicted Stock Price for {selected_stock}")
+fig2, ax2 = plt.subplots(figsize=(10, 6))
+ax2.plot(data.index[train_size:], test_data_plot, label='Actual Test Prices', color='green')
+ax2.plot(data.index[train_size + time_step + 1:], predictions, label='Predicted Prices', color='red')
+ax2.set_xlabel("Date")
+ax2.set_ylabel("Price in USD")
+ax2.set_title(f"Predicted Stock Prices for {selected_stock}")
+ax2.legend()
+st.pyplot(fig2)
 
 # Predict future prices for the next 30 days
 st.subheader(f"Future Price Prediction for the next {num_days} days")
@@ -138,4 +148,22 @@ for i in range(num_days):
     last_days = np.append(last_days[1:], predicted_price)
     last_days = np.reshape(last_days, (time_step, 1))
 
-# Inverse transform
+# Inverse transform to get actual predicted prices
+future_predictions = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
+
+# Create dates for the future predictions
+last_date = data.index[-1]
+future_dates = [last_date + timedelta(days=i) for i in range(1, num_days + 1)]
+
+# Create a dataframe for future predictions
+future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_predictions.flatten()})
+st.write(future_df)
+
+# Plot future predictions
+fig3, ax3 = plt.subplots(figsize=(10, 6))
+ax3.plot(future_dates, future_predictions, label='Predicted Future Prices', color='red')
+ax3.set_xlabel("Date")
+ax3.set_ylabel("Price in USD")
+ax3.set_title(f"Predicted Stock Price of {selected_stock} for the Next {num_days} Days")
+ax3.legend()
+st.pyplot(fig3)
