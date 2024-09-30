@@ -77,7 +77,7 @@ model.add(Dense(1))
 model.compile(optimizer='adam', loss='mean_squared_error')
 
 # Train the model
-model.fit(X_train, y_train, batch_size=1, epochs=5)
+model.fit(X_train, y_train, batch_size=1, epochs=2)
 
 # Predict on the test set
 predictions = model.predict(X_test)
