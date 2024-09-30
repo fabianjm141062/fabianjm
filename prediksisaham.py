@@ -6,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, LSTM
 import matplotlib.pyplot as plt
-from datetime import date, timedelta
+from datetime import timedelta
 
 # Function to fetch stock data from Yahoo Finance
 def load_stock_data(ticker):
@@ -29,8 +29,8 @@ stock_options = {
 selected_stock = st.sidebar.selectbox("Choose a stock", list(stock_options.keys()))
 stock_ticker = stock_options[selected_stock]
 
-# Input for number of days to predict
-num_days = st.sidebar.number_input("Number of future days to predict", min_value=1, max_value=365, value=60)
+# Number of future days is fixed at 30 days
+num_days = 30
 
 # Load stock data
 st.subheader(f"Stock data for {selected_stock}")
@@ -77,7 +77,7 @@ model.add(Dense(1))
 model.compile(optimizer='adam', loss='mean_squared_error')
 
 # Train the model
-model.fit(X_train, y_train, batch_size=1, epochs=2)
+model.fit(X_train, y_train, batch_size=1, epochs=5)
 
 # Predict on the test set
 predictions = model.predict(X_test)
@@ -101,54 +101,43 @@ ax.set_title(f"Actual vs Predicted Prices for {selected_stock}")
 ax.legend()
 st.pyplot(fig)
 
-# Predict future prices based on user input in 30-day intervals
-st.subheader(f"Future Price Prediction for the next {num_days} days with 30-day intervals")
+# Predict future prices for the next 30 days
+st.subheader(f"Future Price Prediction for the next {num_days} days")
 
 # Get the last `time_step` days of data for prediction
 last_days = scaled_data[-time_step:]
 future_predictions = []
-prediction_intervals = []
 
-# Predict in 30-day intervals
-for i in range(0, num_days, 30):
-    # Create temporary storage for predictions in each interval
-    temp_future_predictions = []
+# Predict for 30 days
+for i in range(num_days):
+    # Reshape the last `time_step` days into LSTM input format
+    input_data = np.reshape(last_days, (1, time_step, 1))
     
-    # Predict 30 days ahead in each interval
-    for j in range(30):
-        # Reshape the last `time_step` days into LSTM input format
-        input_data = np.reshape(last_days, (1, time_step, 1))
-        
-        # Predict the next day
-        predicted_price = model.predict(input_data)
-        
-        # Append the predicted price
-        temp_future_predictions.append(predicted_price[0][0])
-        
-        # Update the input data with the predicted price for the next iteration
-        last_days = np.append(last_days[1:], predicted_price)
-        last_days = np.reshape(last_days, (time_step, 1))
+    # Predict the next day
+    predicted_price = model.predict(input_data)
     
-    # Store predictions for each interval
-    future_predictions.append(temp_future_predictions)
-    prediction_intervals.append(i + 30)
+    # Append the predicted price to future_predictions
+    future_predictions.append(predicted_price[0][0])
+    
+    # Update the input data with the predicted price for the next iteration
+    last_days = np.append(last_days[1:], predicted_price)
+    last_days = np.reshape(last_days, (time_step, 1))
 
-# Flatten the predictions and inverse transform to get actual predicted prices
-future_predictions_flat = [item for sublist in future_predictions for item in sublist]
-future_predictions_flat = scaler.inverse_transform(np.array(future_predictions_flat).reshape(-1, 1))
+# Inverse transform to get actual predicted prices
+future_predictions = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
 
-# Create dates for the future predictions in 30-day intervals
+# Create dates for the future predictions
 last_date = data.index[-1]
-future_dates = [last_date + timedelta(days=i) for i in range(1, len(future_predictions_flat) + 1)]
+future_dates = [last_date + timedelta(days=i) for i in range(1, num_days + 1)]
 
 # Create a dataframe for future predictions
-future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_predictions_flat.flatten()})
+future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_predictions.flatten()})
 st.write(future_df)
 
 # Plot future predictions
 fig2, ax2 = plt.subplots(figsize=(10, 6))
-ax2.plot(future_dates, future_predictions_flat, label='Predicted Price', color='red')
+ax2.plot(future_dates, future_predictions, label='Predicted Price', color='red')
 ax2.set_xlabel("Date")
 ax2.set_ylabel("Price in USD")
-ax2.set_title(f"Predicted Stock Price of {selected_stock} for the Next {num_days} Days in 30-Day Intervals")
+ax2.set_title(f"Predicted Stock Price of {selected_stock} for the Next {num_days} Days")
 st.pyplot(fig2)
