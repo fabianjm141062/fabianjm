@@ -88,10 +88,13 @@ if st.button('Run Predictions'):
     predictions = model.predict(X_test)
     predictions = scaler.inverse_transform(predictions)
 
+    # Adjust the length of the actual test data index to match the predicted data
+    test_data_index = data.index[train_size + time_step + 1: train_size + time_step + 1 + len(predictions)]
+
     # Plot the predicted prices
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.plot(data.index[train_size:], scaler.inverse_transform(test_data), label='Actual Prices', color='green')
-    ax.plot(data.index[train_size:], predictions, label='Predicted Prices', color='red')
+    ax.plot(test_data_index, predictions, label='Predicted Prices', color='red')
     ax.set_xlabel("Date")
     ax.set_ylabel("Price in USD")
     ax.legend()
