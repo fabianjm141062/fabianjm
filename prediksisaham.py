@@ -62,83 +62,99 @@ time_step = 60
 X_train, y_train = create_dataset(train_data, time_step)
 X_test, y_test = create_dataset(test_data, time_step)
 
-# Reshape the input to be [samples, time steps, features] for LSTM
-X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
+# Check for NaN values in data
+if np.isnan(X_train).any() or np.isnan(y_train).any():
+    st.error("Training data contains NaN values. Please check the data preprocessing step.")
+else:
+    # Reshape the input to be [samples, time steps, features] for LSTM
+    X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
+    X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
-# Build LSTM model
-model = Sequential()
-model.add(LSTM(50, return_sequences=True, input_shape=(time_step, 1)))
-model.add(LSTM(50, return_sequences=False))
-model.add(Dense(25))
-model.add(Dense(1))
+    # Check the shapes of X_train and y_train
+    st.write(f"X_train shape: {X_train.shape}")
+    st.write(f"y_train shape: {y_train.shape}")
 
-# Compile the model
-model.compile(optimizer='adam', loss='mean_squared_error')
+    # Build LSTM model
+    model = Sequential()
+    model.add(LSTM(50, return_sequences=True, input_shape=(time_step, 1)))
+    model.add(LSTM(50, return_sequences=False))
+    model.add(Dense(25))
+    model.add(Dense(1))
 
-# Train the model
-model.fit(X_train, y_train, batch_size=1, epochs=5)
+    # Compile the model
+    model.compile(optimizer='adam', loss='mean_squared_error')
 
-# Predict on the test set
-predictions = model.predict(X_test)
-predictions = scaler.inverse_transform(predictions)
+    # Train the model with error handling
+    try:
+        model.fit(X_train, y_train, batch_size=5, epochs=2)
+        st.success("Model training completed successfully.")
+    except Exception as e:
+        st.error(f"Error during model training: {e}")
 
-# Evaluate the model
-st.subheader("Model Performance")
-st.write(f"Mean Squared Error on Test Set: {np.mean((predictions - scaler.inverse_transform(y_test.reshape(-1, 1))) ** 2):.4f}")
+    # Predict on the test set
+    predictions = model.predict(X_test)
+    predictions = scaler.inverse_transform(predictions)
 
-# Plot actual vs predicted stock prices
-st.subheader(f"Stock closing price prediction for {selected_stock}")
-fig, ax = plt.subplots(figsize=(10, 6))
-train_data_plot = data['Close'][:train_size]
-test_data_plot = data['Close'][train_size:]
-ax.plot(data.index[:train_size], train_data_plot, label='Training Data', color='blue')
-ax.plot(data.index[train_size:], test_data_plot, label='Actual Prices', color='green')
-ax.plot(data.index[train_size + time_step + 1:], predictions, label='Predicted Prices', color='red')
-ax.set_xlabel("Date")
-ax.set_ylabel("Price in USD")
-ax.set_title(f"Actual vs Predicted Prices for {selected_stock}")
-ax.legend()
-st.pyplot(fig)
+    # Evaluate the model
+    st.subheader("Model Performance")
+    try:
+        mse = np.mean((predictions - scaler.inverse_transform(y_test.reshape(-1, 1))) ** 2)
+        st.write(f"Mean Squared Error on Test Set: {mse:.4f}")
+    except Exception as e:
+        st.error(f"Error during model evaluation: {e}")
 
-# Predict future prices for the next 30 days
-st.subheader(f"Future Price Prediction for the next {num_days} days")
+    # Plot actual vs predicted stock prices
+    st.subheader(f"Stock closing price prediction for {selected_stock}")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    train_data_plot = data['Close'][:train_size]
+    test_data_plot = data['Close'][train_size:]
+    ax.plot(data.index[:train_size], train_data_plot, label='Training Data', color='blue')
+    ax.plot(data.index[train_size:], test_data_plot, label='Actual Prices', color='green')
+    ax.plot(data.index[train_size + time_step + 1:], predictions, label='Predicted Prices', color='red')
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Price in USD")
+    ax.set_title(f"Actual vs Predicted Prices for {selected_stock}")
+    ax.legend()
+    st.pyplot(fig)
 
-# Get the last `time_step` days of data for prediction
-last_days = scaled_data[-time_step:]
-future_predictions = []
+    # Predict future prices for the next 30 days
+    st.subheader(f"Future Price Prediction for the next {num_days} days")
 
-# Predict for 30 days
-for i in range(num_days):
-    # Reshape the last `time_step` days into LSTM input format
-    input_data = np.reshape(last_days, (1, time_step, 1))
-    
-    # Predict the next day
-    predicted_price = model.predict(input_data)
-    
-    # Append the predicted price to future_predictions
-    future_predictions.append(predicted_price[0][0])
-    
-    # Update the input data with the predicted price for the next iteration
-    last_days = np.append(last_days[1:], predicted_price)
-    last_days = np.reshape(last_days, (time_step, 1))
+    # Get the last `time_step` days of data for prediction
+    last_days = scaled_data[-time_step:]
+    future_predictions = []
 
-# Inverse transform to get actual predicted prices
-future_predictions = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
+    # Predict for 30 days
+    for i in range(num_days):
+        # Reshape the last `time_step` days into LSTM input format
+        input_data = np.reshape(last_days, (1, time_step, 1))
 
-# Create dates for the future predictions
-last_date = data.index[-1]
-future_dates = [last_date + timedelta(days=i) for i in range(1, num_days + 1)]
+        # Predict the next day
+        predicted_price = model.predict(input_data)
 
-# Create a dataframe for future predictions
-future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_predictions.flatten()})
-st.write(future_df)
+        # Append the predicted price to future_predictions
+        future_predictions.append(predicted_price[0][0])
 
-# Plot future predictions
-fig2, ax2 = plt.subplots(figsize=(10, 6))
-ax2.plot(future_dates, future_predictions, label='Predicted Price', color='red')
-ax2.set_xlabel("Date")
-ax2.set_ylabel("Price in USD")
-ax2.set_title(f"Predicted Stock Price of {selected_stock} for the Next {num_days} Days")
-ax2.legend()
-st.pyplot(fig2)
+        # Update the input data with the predicted price for the next iteration
+        last_days = np.append(last_days[1:], predicted_price)
+        last_days = np.reshape(last_days, (time_step, 1))
+
+    # Inverse transform to get actual predicted prices
+    future_predictions = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
+
+    # Create dates for the future predictions
+    last_date = data.index[-1]
+    future_dates = [last_date + timedelta(days=i) for i in range(1, num_days + 1)]
+
+    # Create a dataframe for future predictions
+    future_df = pd.DataFrame({'Date': future_dates, 'Predicted Price': future_predictions.flatten()})
+    st.write(future_df)
+
+    # Plot future predictions
+    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    ax2.plot(future_dates, future_predictions, label='Predicted Price', color='red')
+    ax2.set_xlabel("Date")
+    ax2.set_ylabel("Price in USD")
+    ax2.set_title(f"Predicted Stock Price of {selected_stock} for the Next {num_days} Days")
+    ax2.legend()
+    st.pyplot(fig2)
