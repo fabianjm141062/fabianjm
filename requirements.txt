@@ -8,3 +8,4 @@ yfinance
 tensorflow
 python-chess
 stockfish
+vaderSentiment
