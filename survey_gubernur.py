@@ -28,7 +28,7 @@ y_pred = model.predict(X_test)
 accuracy = accuracy_score(y_test, y_pred)
 
 # Streamlit App
-st.title("Prediksi Pemenang Gubernur Sulawesi Utara")
+st.title("Prediksi Pemenang Gubernur Sulawesi Utara dengan Machine Learning AI oleh Fabian J Manoppo")
 st.write("Prediksi pemenang berdasarkan data sentimen dan popularitas di media sosial.")
 
 # Input data untuk prediksi
