@@ -9,3 +9,4 @@ tensorflow
 python-chess
 stockfish
 vaderSentiment
+tweepy
