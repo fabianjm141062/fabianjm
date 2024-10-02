@@ -115,4 +115,15 @@ try:
 
         # Create dates for the future predictions
         last_date = data.index[-1]
-        f
+        future_dates = [last_date + timedelta(days=i) for i in range(1, num_days + 1)]
+
+        # Plot future predictions
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        ax2.plot(future_dates, future_predictions, label='Predicted Prices', color='red')
+        ax2.set_xlabel("Date")
+        ax2.set_ylabel("Price in USD")
+        ax2.legend()
+        st.pyplot(fig2)
+
+except Exception as e:
+    st.error(f"Failed to load commodity data for {commodity_ticker}. Please check the commodity ticker and try again.")
