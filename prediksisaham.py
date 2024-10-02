@@ -18,7 +18,7 @@ def load_stock_data(ticker):
     return data
 
 # Title of the app
-st.title('Stock Price Prediction using Deep Learning oleh Fabian J Manoppo')
+st.title('Stock Price Prediction using Deep Learning by Fabian J Manoppo')
 
 # Sidebar stock selection
 st.sidebar.subheader("Stock Selection")
