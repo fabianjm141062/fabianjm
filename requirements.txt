@@ -10,3 +10,6 @@ python-chess
 stockfish
 vaderSentiment
 tweepy
+pytesseract
+tesseract-ocr
+tesseract
