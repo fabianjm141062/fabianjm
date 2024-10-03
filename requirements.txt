@@ -13,3 +13,5 @@ tweepy
 pytesseract
 tesseract-ocr
 tesseract
+Pillow
+python-docx
