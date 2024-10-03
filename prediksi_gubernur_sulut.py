@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 
 # Twitter API v2 credentials - masukkan Bearer Token kamu
-bearer_token = 'YOUR_TWITTER_BEARER_TOKEN'
+bearer_token = 'npx create-react-app real-time-tweet-streamer'
 
 # Inisialisasi Tweepy Client untuk Twitter API v2
 client = tweepy.Client(bearer_token=bearer_token)
