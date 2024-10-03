@@ -10,8 +10,3 @@ python-chess
 stockfish
 vaderSentiment
 tweepy
-pytesseract
-tesseract-ocr
-tesseract
-Pillow
-python-docx
