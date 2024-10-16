@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Title of the app
-st.title('Mechanical Calculation for RBDPO Tank')
+st.title('Mechanical Calculation for RBDPO Tank by Fabian J Manoppo')
 
 # Section 1: Input Data Form
 st.header("Input Data")
