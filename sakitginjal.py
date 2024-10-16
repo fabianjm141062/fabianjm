@@ -38,7 +38,7 @@ model = RandomForestClassifier(random_state=42)
 model.fit(features, target)
 
 # Streamlit interface
-st.title("Kidney Disease Prediction")
+st.title("Kidney Disease Prediction by Fabian J Manoppo")
 
 def user_input():
     age = st.number_input("Age", min_value=0, max_value=100, value=50)
