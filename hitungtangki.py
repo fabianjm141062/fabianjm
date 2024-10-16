@@ -60,12 +60,17 @@ st.subheader("Shell Course Thickness Summary")
 for course, thickness in shell_courses.items():
     st.write(f"{course}: {thickness}")
 
-# Section 3: Display Design Image
-st.subheader("Tank Design")
+# Section 3: Image Upload (Design Image)
+st.subheader("Upload Tank Design Image")
 
-# Load the image from the directory or a URL
-image = Image.open("tank_design.png")  # Replace with the path to your image
-st.image(image, caption="Tank Design Schematic", use_column_width=True)
+uploaded_image = st.file_uploader("Choose a tank design image...", type=["png", "jpg", "jpeg"])
+
+# Check if an image has been uploaded
+if uploaded_image is not None:
+    image = Image.open(uploaded_image)
+    st.image(image, caption="Uploaded Tank Design", use_column_width=True)
+else:
+    st.write("Please upload an image to display the tank design.")
 
 # Section 4: Option to download the results
 st.subheader("Download Summary as Excel")
