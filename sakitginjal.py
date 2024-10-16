@@ -70,6 +70,9 @@ def user_input():
         'sc': [sc],
     })
     
+    # Ensure the input matches the model's feature names
+    data_input = data_input.reindex(columns=features.columns, fill_value=0)
+    
     return data_input
 
 # Predict based on user input
