@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+from PIL import Image
 
 # Title of the app
-st.title('Mechanical Calculation for RBDPO Tank by Fabian J Manoppo')
+st.title('Mechanical Calculation for RBDPO Tank')
 
 # Section 1: Input Data Form
 st.header("Input Data")
@@ -59,7 +60,14 @@ st.subheader("Shell Course Thickness Summary")
 for course, thickness in shell_courses.items():
     st.write(f"{course}: {thickness}")
 
-# Section 3: Option to download the results
+# Section 3: Display Design Image
+st.subheader("Tank Design")
+
+# Load the image from the directory or a URL
+image = Image.open("tank_design.png")  # Replace with the path to your image
+st.image(image, caption="Tank Design Schematic", use_column_width=True)
+
+# Section 4: Option to download the results
 st.subheader("Download Summary as Excel")
 
 # Create a DataFrame for output data
