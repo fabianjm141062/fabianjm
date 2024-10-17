@@ -26,7 +26,6 @@ def calculate_daily_calories(bmr, activity_level):
 # Fungsi untuk merekomendasikan asupan nutrisi
 def nutrition_recommendation(daily_calories, medical_history):
     nutrition_plan = {}
-    
     nutrition_plan['calories'] = daily_calories
 
     if 'diabetes' in medical_history:
@@ -59,7 +58,6 @@ def nutrition_recommendation(daily_calories, medical_history):
             "- Protein: daging tanpa lemak, telur, kacang-kacangan.\n"
             "- Lemak sehat: minyak zaitun, kacang-kacangan, dan alpukat."
         )
-
     return nutrition_plan
 
 # Fungsi untuk menghitung BMI
@@ -126,7 +124,7 @@ def exercise_recommendation(activity_level, medical_history):
     return exercise_plan
 
 # Streamlit UI
-st.title("Kalkulator Kebutuhan Nutrisi, BMI, Vitamin, dan Olahraga")
+st.title("Kalkulator Kebutuhan Nutrisi, BMI, Vitamin, dan Olahraga oleh Fabian J Manoppo")
 
 # Input data pengguna
 age = st.number_input("Masukkan umur:", min_value=0, max_value=120, step=1)
@@ -167,5 +165,4 @@ if st.button("Hitung Kebutuhan Nutrisi"):
     st.write(f"Lemak: {nutrition_plan['fats']}")
     st.write(f"Catatan: {nutrition_plan['notes']}")
 
-    st.subheader("Indeks Massa Tubuh (BMI)")
    
