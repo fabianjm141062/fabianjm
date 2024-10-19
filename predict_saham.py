@@ -12,28 +12,28 @@ import os
 # Optional: Force TensorFlow to use CPU (if there are GPU-related issues)
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
-# Function to fetch commodity data from Yahoo Finance (with reduced data range)
-def load_commodity_data(ticker):
-    data = yf.download(ticker, start="2019-01-01", end="2024-12-31")  # Reduced range for commodity
+# Function to fetch stock data from Yahoo Finance
+def load_stock_data(ticker):
+    data = yf.download(ticker, start="2019-01-01", end="2024-12-31")  # Adjusted for stock range
     return data
 
 # Title of the app
-st.title('Commodity Price Prediction using Deep Learning by Fabian J Manoppo')
+st.title('Stock Price Prediction using Deep Learning by Fabian J Manoppo')
 
-# Sidebar commodity selection
-st.sidebar.subheader("Commodity Selection")
+# Sidebar stock selection
+st.sidebar.subheader("Stock Selection")
 
-# Allow the user to input any commodity ticker (e.g., GC=F for Gold, CL=F for Crude Oil)
-commodity_ticker = st.sidebar.text_input("Enter the commodity ticker (e.g., GC=F for Gold, CL=F for Crude Oil)", value="GC=F")
+# Allow the user to input any stock ticker (e.g., AAPL for Apple, MSFT for Microsoft)
+stock_ticker = st.sidebar.text_input("Enter the stock ticker (e.g., AAPL for Apple, MSFT for Microsoft)", value="AAPL")
 
 # Define the number of future days to predict
 num_days = st.sidebar.number_input("Number of future days to predict", min_value=1, max_value=365, value=60)
 
-# Automatically load commodity data and preprocess it
-st.subheader(f"Commodity data for {commodity_ticker}")
+# Automatically load stock data and preprocess it
+st.subheader(f"Stock data for {stock_ticker}")
 try:
-    # Load commodity data
-    data = load_commodity_data(commodity_ticker)
+    # Load stock data
+    data = load_stock_data(stock_ticker)
     st.write(data.tail())
 
     # Preprocessing the data
@@ -126,4 +126,4 @@ try:
         st.pyplot(fig2)
 
 except Exception as e:
-    st.error(f"Failed to load commodity data for {commodity_ticker}. Please check the commodity ticker and try again.")
+    st.error(f"Failed to load stock data for {stock_ticker}. Please check the stock ticker and try again.")
