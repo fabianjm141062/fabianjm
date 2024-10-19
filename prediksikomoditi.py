@@ -24,7 +24,7 @@ def load_commodity_data(ticker):
         return None
 
 # Title of the app
-st.title('Commodity Price Prediction by Fabian J Manoppo')
+st.title('Commodity Price Prediction with Economic Indicators by Fabian J Manoppo')
 
 # Sidebar for commodity selection
 st.sidebar.subheader("Commodity Selection")
