@@ -35,8 +35,8 @@ commodity_options = {
     "Crude Oil": "CL=F",
     "Palm Oil": "POF=F",
     "USD/IDR": "USDIDR=X",
-    "EUR/IDR": "EURUSD=X"
-    "CNY/IDR": "EURUSD=X"
+    "EUR/IDR": "EURIDR=X"
+    "CNY/IDR": "CNYIDR=X"
 }
 commodity_name = st.sidebar.selectbox("Select a commodity/currency", list(commodity_options.keys()))
 commodity_ticker = commodity_options[commodity_name]
