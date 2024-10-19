@@ -143,7 +143,8 @@ if data is not None:
 
                 # If using Volume, append correctly shaped array; otherwise, just the price
                 if 'Volume' in data.columns:
-                    last_days = np.append(last_days[1:], np.array([[predicted_price, 0]]), axis=0)  # Append predicted price with 0 for Volume
+                    # Create a 2D array with predicted price and dummy value for volume
+                    last_days = np.append(last_days[1:], np.array([[predicted_price, 0]]), axis=0)
                 else:
                     last_days = np.append(last_days[1:], np.array([[predicted_price]]), axis=0)
 
