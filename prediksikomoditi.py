@@ -24,10 +24,10 @@ def load_commodity_data(ticker):
         return None
 
 # Title of the app
-st.title('Commodity & Currency Price Prediction With Economic Indicators by Fabian J Manoppo')
+st.title('Commodity & Currency Price Prediction with Economic Indicators by Fabian J Manoppo')
 
 # Sidebar for commodity selection
-st.sidebar.subheader("Commodity Selection")
+st.sidebar.subheader("Commodity Selection")& C
 
 # Allow the user to select a commodity ticker
 commodity_options = {
@@ -38,7 +38,7 @@ commodity_options = {
     "EUR/IDR": "EURIDR=X",  # Replaced USD/EUR with EUR/IDR
     "CNY/IDR": "CNYIDR=X",  # Added CNY/IDR
     "Natural Gas": "NG=F",   # Added Natural Gas
-    "Coal": "TFCF=F"         # Added Coal
+    "Coal": "MTF=F"          # Replaced invalid Coal ticker with Newcastle Coal Futures (MTF=F)
 }
 commodity_name = st.sidebar.selectbox("Select a commodity/currency", list(commodity_options.keys()))
 commodity_ticker = commodity_options[commodity_name]
@@ -105,12 +105,25 @@ if data is not None:
             # Adjust the length of the actual test data index to match the predicted data
             test_data_index = data.index[train_size + time_step + 1: train_size + time_step + 1 + len(predictions)]
 
+            # Set y-axis labels based on the commodity/currency
+            y_label = "Price in USD"
+            if "IDR" in commodity_ticker:
+                y_label = "Price in IDR"
+            elif "CNY" in commodity_ticker:
+                y_label = "Price in CNY"
+            elif commodity_name == "Gold":
+                y_label = "Price per Ounce (USD)"
+            elif commodity_name == "Crude Oil" or commodity_name == "Natural Gas":
+                y_label = "Price per Barrel (USD)"
+            elif commodity_name == "Coal":
+                y_label = "Price per Ton (USD)"
+
             # Plot the predicted prices
             fig, ax = plt.subplots(figsize=(10, 6))
             ax.plot(data.index[train_size:], scaler.inverse_transform(test_data), label='Actual Prices', color='green')
             ax.plot(test_data_index, predictions, label='Predicted Prices', color='red')
             ax.set_xlabel("Date")
-            ax.set_ylabel("Price in USD")
+            ax.set_ylabel(y_label)  # Dynamic y-axis label
             ax.legend()
             st.pyplot(fig)
 
@@ -139,7 +152,7 @@ if data is not None:
             fig2, ax2 = plt.subplots(figsize=(10, 6))
             ax2.plot(future_dates, future_predictions, label='Predicted Prices', color='red')
             ax2.set_xlabel("Date")
-            ax2.set_ylabel("Price in USD")
+            ax2.set_ylabel(y_label)  # Dynamic y-axis label
             ax2.legend()
             st.pyplot(fig2)
 
