@@ -24,7 +24,7 @@ def load_commodity_data(ticker):
         return None
 
 # Title of the app
-st.title('Commodity & Currency Price Prediction with Economic Indicators by Fabian J Manoppo')
+st.title('Commodity Price Prediction by Fabian J Manoppo')
 
 # Sidebar for commodity selection
 st.sidebar.subheader("Commodity Selection")
@@ -34,11 +34,11 @@ commodity_options = {
     "Gold": "GC=F",
     "Crude Oil": "CL=F",
     "Palm Oil": "POF=F",
-    "Natural Gas": "NG=F",   # Added Natural Gas
-    "Coal": "TFCF=F",        # Added Coal
     "USD/IDR": "USDIDR=X",
     "EUR/IDR": "EURIDR=X",  # Replaced USD/EUR with EUR/IDR
-    "CNY/IDR": "CNYIDR=X"   # Added CNY/IDR
+    "CNY/IDR": "CNYIDR=X",  # Added CNY/IDR
+    "Natural Gas": "NG=F",   # Added Natural Gas
+    "Coal": "TFCF=F"         # Added Coal
 }
 commodity_name = st.sidebar.selectbox("Select a commodity/currency", list(commodity_options.keys()))
 commodity_ticker = commodity_options[commodity_name]
