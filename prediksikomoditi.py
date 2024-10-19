@@ -36,7 +36,7 @@ commodity_options = {
     "Palm Oil": "POF=F",
     "USD/IDR": "USDIDR=X",
     "EUR/IDR": "EURIDR=X",  # Replaced USD/EUR with EUR/IDR
-    "CNY/IDR": "CNYIDR=X",  # Added CNY/IDR
+    "USD/CNY": "USDCNY=X",  # Added CNY/USD
     "Natural Gas": "NG=F",   # Added Natural Gas
     "Coal": "MTF=F"          # Replaced invalid Coal ticker with Newcastle Coal Futures (MTF=F)
 }
