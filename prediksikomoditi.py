@@ -27,7 +27,7 @@ def load_commodity_data(ticker):
 st.title('Commodity & Currency Price Prediction with Economic Indicators by Fabian J Manoppo')
 
 # Sidebar for commodity selection
-st.sidebar.subheader("Commodity Selection")& C
+st.sidebar.subheader("Commodity Selection")
 
 # Allow the user to select a commodity ticker
 commodity_options = {
