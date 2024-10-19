@@ -139,12 +139,15 @@ if data is not None:
             # Predict for `num_days`
             for i in range(num_days):
                 input_data = np.reshape(last_days, (1, time_step, X_train.shape[2]))
-                predicted_price = model.predict(input_data)
-                future_predictions.append(predicted_price[0][0])
+                predicted_price = model.predict(input_data)[0][0]
+
+                # If using Volume, append correctly shaped array; otherwise, just the price
                 if 'Volume' in data.columns:
-                    last_days = np.append(last_days[1:], np.concatenate((predicted_price, [[0]]), axis=1), axis=0)
+                    last_days = np.append(last_days[1:], np.array([[predicted_price, 0]]), axis=0)  # Append predicted price with 0 for Volume
                 else:
-                    last_days = np.append(last_days[1:], predicted_price)
+                    last_days = np.append(last_days[1:], np.array([[predicted_price]]), axis=0)
+
+                future_predictions.append(predicted_price)
 
             # Inverse transform to get actual predicted prices
             future_predictions = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
