@@ -1,16 +1,15 @@
 import streamlit as st
-import numpy as np
 import pickle
 from sklearn.preprocessing import StandardScaler
 
-# Load the trained model and scaler (once saved)
-# For deployment, you will need to save your model and scaler to disk and load them in the app
-# model = pickle.load(open('logistic_model.pkl', 'rb'))
-# scaler = pickle.load(open('scaler.pkl', 'rb'))
+# Load the trained model and scaler from the pickle files
+with open('logistic_model.pkl', 'rb') as model_file:
+    model = pickle.load(model_file)
 
-# For demo, we'll use the trained model and scaler from above
-# In actual use case, you'd load them from the pickle files
+with open('scaler.pkl', 'rb') as scaler_file:
+    scaler = pickle.load(scaler_file)
 
+# Prediction function
 def predict_kidney_stone(gravity, ph, osmo, cond, urea, calc):
     # Scale the input features
     scaled_data = scaler.transform([[gravity, ph, osmo, cond, urea, calc]])
