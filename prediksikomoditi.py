@@ -12,32 +12,45 @@ import os
 # Optional: Force TensorFlow to use CPU (if there are GPU-related issues)
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
-# Function to fetch stock data from Yahoo Finance
-def load_stock_data(ticker):
+# Function to fetch commodity/currency data from Yahoo Finance
+def load_commodity_data(ticker):
     data = yf.download(ticker, start="2018-01-01", end="2024-12-31")  # Fetch more data for better prediction
     return data
 
 # Title of the app
-st.title('Gold Price Prediction with Economic Indicators by Fabian J Manoppo')
+st.title('Commodity & Currency Price Prediction with Economic Indicators by Fabian J Manoppo')
 
-# Sidebar stock selection
-st.sidebar.subheader("Commodity Selection")
+# Sidebar commodity selection
+st.sidebar.subheader("Commodity/Currency Selection")
 
-# Allow the user to input any commodity ticker (e.g., GC=F for Gold)
-stock_ticker = st.sidebar.text_input("Enter the commodity ticker (e.g., GC=F for Gold)", value="GC=F")
+# Allow the user to select a commodity/currency ticker from the predefined list
+commodity_options = {
+    "Gold": "GC=F",
+    "Crude Oil": "CL=F",
+    "Palm Oil": "POF=F",
+    "USD/IDR": "USDIDR=X",
+    "USD/EUR": "EURUSD=X"
+}
+commodity_name = st.sidebar.selectbox("Select a commodity/currency", list(commodity_options.keys()))
+commodity_ticker = commodity_options[commodity_name]
 
 # Define the number of future days to predict
 num_days = st.sidebar.number_input("Number of future days to predict", min_value=1, max_value=365, value=60)
 
-# Load stock data and preprocess it
-st.subheader(f"Commodity data for {stock_ticker}")
+# Load commodity/currency data and preprocess it
+st.subheader(f"Data for {commodity_name}")
 try:
-    # Load stock data
-    data = load_stock_data(stock_ticker)
+    # Load the selected commodity/currency data
+    data = load_commodity_data(commodity_ticker)
     st.write(data.tail())
 
-    # Add volume data to the model to include another feature
-    data_features = data[['Close', 'Volume']].values
+    # Add volume data to the model (if available, otherwise just the 'Close' prices)
+    if 'Volume' in data.columns:
+        data_features = data[['Close', 'Volume']].values
+    else:
+        # Some currency pairs or commodities might not have volume data, use just 'Close'
+        data_features = data[['Close']].values
+    
     scaler = MinMaxScaler(feature_range=(0, 1))
     scaled_data = scaler.fit_transform(data_features)
 
@@ -50,7 +63,7 @@ try:
     def create_dataset(dataset, time_step=60):
         X, y = [], []
         for i in range(len(dataset) - time_step - 1):
-            X.append(dataset[i:(i + time_step), :])  # Use all features (Close, Volume)
+            X.append(dataset[i:(i + time_step), :])  # Use all available features (Close, Volume)
             y.append(dataset[i + time_step, 0])  # Predict only 'Close' price
         return np.array(X), np.array(y)
 
@@ -65,7 +78,7 @@ try:
 
     # Build a more robust LSTM model
     model = Sequential()
-    model.add(LSTM(50, return_sequences=True, input_shape=(time_step, 2)))  # Increased LSTM layers and units
+    model.add(LSTM(50, return_sequences=True, input_shape=(time_step, X_train.shape[2])))  # Increased LSTM layers and units
     model.add(Dropout(0.2))  # Adding dropout for regularization
     model.add(LSTM(50, return_sequences=False))
     model.add(Dense(25))
@@ -83,7 +96,11 @@ try:
     if st.button('Run Predictions'):
         # Predict on the test set
         predictions = model.predict(X_test)
-        predictions = scaler.inverse_transform(np.concatenate((predictions, np.zeros((predictions.shape[0], 1))), axis=1))[:, 0]
+        # If Volume is not used, avoid scaling the second column
+        if 'Volume' in data.columns:
+            predictions = scaler.inverse_transform(np.concatenate((predictions, np.zeros((predictions.shape[0], 1))), axis=1))[:, 0]
+        else:
+            predictions = scaler.inverse_transform(predictions)
 
         # Adjust the length of the actual test data index to match the predicted data
         test_data_index = data.index[train_size + time_step + 1: train_size + time_step + 1 + len(predictions)]
@@ -106,10 +123,13 @@ try:
 
         # Predict for `num_days`
         for i in range(num_days):
-            input_data = np.reshape(last_days, (1, time_step, 2))
+            input_data = np.reshape(last_days, (1, time_step, X_train.shape[2]))
             predicted_price = model.predict(input_data)
             future_predictions.append(predicted_price[0][0])
-            last_days = np.append(last_days[1:], np.concatenate((predicted_price, [[0]]), axis=1), axis=0)
+            if 'Volume' in data.columns:
+                last_days = np.append(last_days[1:], np.concatenate((predicted_price, [[0]]), axis=1), axis=0)
+            else:
+                last_days = np.append(last_days[1:], predicted_price)
 
         # Inverse transform to get actual predicted prices
         future_predictions = scaler.inverse_transform(np.array(future_predictions).reshape(-1, 1))
@@ -127,4 +147,4 @@ try:
         st.pyplot(fig2)
 
 except Exception as e:
-    st.error(f"Failed to load data for {stock_ticker}. Please check the commodity ticker and try again.")
+    st.error(f"Failed to load data for {commodity_ticker}. Please check the commodity/currency ticker and try again.")
