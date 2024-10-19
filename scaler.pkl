@@ -1,0 +1,5 @@
+with open('/path/to/your/model/logistic_model.pkl', 'rb') as model_file:
+    model = pickle.load(model_file)
+
+with open('/path/to/your/scaler/scaler.pkl', 'rb') as scaler_file:
+    scaler = pickle.load(scaler_file)
