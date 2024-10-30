@@ -12,7 +12,7 @@ material_properties = {
 soil_properties = {
     "sand": {"Unit Weight": 18.0, "Friction Angle": 35.0, "Cohesion": 0.0},
     "clay": {"Unit Weight": 20.0, "Friction Angle": 0.0, "Cohesion": 25.0},
-    "sandy clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}
+    "sandy clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}  # Example properties for sandy clay
 }
 
 class SheetPileAnalysis:
@@ -70,8 +70,8 @@ class SheetPileAnalysis:
 
     def plot_pressure_diagram(self, safety_factor):
         fig, ax = plt.subplots(figsize=(8, 10))
-        ax.invert_yaxis()
         
+        # Active Pressure Calculation with surcharge and groundwater effect
         depths = [0]
         active_pressures = [0]
         y_offset = 0
@@ -107,15 +107,16 @@ class SheetPileAnalysis:
         ax.plot([0, 0], [0, -self.surcharge], 'g|-', linewidth=2, label='Surcharge Load')  # Surcharge arrow line
         
         if self.groundwater_level < self.total_depth:
-            ax.plot([-1.5 * max(passive_interp), 1.5 * max(active_interp)], [self.groundwater_level, self.groundwater_level], 'b--', label='Groundwater Level')
+            ax.axhline(y=self.groundwater_level, color='blue', linestyle='--', label='Groundwater Level')
 
         if safety_factor >= self.safety_factor_threshold:
-            ax.text(0.5, 0.5, "Safe", color="green", transform=ax.transAxes, fontsize=20, fontweight='bold', ha='center', va='center')
+            ax.text(0.5, 0.1, "Safe", color="green", transform=ax.transAxes, fontsize=20, fontweight='bold', ha='center', va='center')
         else:
-            ax.text(0.5, 0.5, "Not Safe", color="red", transform=ax.transAxes, fontsize=20, fontweight='bold', ha='center', va='center')
+            ax.text(0.5, 0.1, "Not Safe", color="red", transform=ax.transAxes, fontsize=20, fontweight='bold', ha='center', va='center')
 
         ax.set_xlabel("Pressure (kPa)")
         ax.set_ylabel("Depth (m)")
+        ax.set_ylim(0, max_depth)  # Set y-axis to start from 0 and increase downward
         ax.set_title("Combined Active and Passive Earth Pressure Diagram")
         ax.legend()
         ax.grid()
