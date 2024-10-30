@@ -30,13 +30,13 @@ class SheetPileAnalysis:
             angle_factor = (45 + friction_angle / 2) if is_passive else (45 - friction_angle / 2)
             K = np.tan(np.radians(angle_factor)) ** 2
         elif self.analysis_method == "coulomb":
+            phi = np.radians(friction_angle)
             if is_passive:
-                K = (np.cos(np.radians(friction_angle)) ** 2) / (
-                    np.cos(np.radians(friction_angle)) + np.sqrt(np.cos(np.radians(friction_angle - 45))))
+                # Coulomb's passive earth pressure coefficient
+                K = (np.cos(phi) + np.sqrt(np.cos(phi)**2 - np.cos(np.radians(45 - friction_angle / 2))**2)) / np.cos(phi)
             else:
-                K = (np.cos(np.radians(friction_angle)) ** 2) / (
-                    np.cos(np.radians(friction_angle)) - np.sqrt(np.cos(np.radians(friction_angle - 45)))
-                )
+                # Coulomb's active earth pressure coefficient
+                K = (np.cos(phi) - np.sqrt(np.cos(phi)**2 - np.cos(np.radians(45 + friction_angle / 2))**2)) / np.cos(phi)
         else:
             raise ValueError("Unknown method. Please choose 'Rankine' or 'Coulomb'.")
         return K
@@ -94,6 +94,7 @@ class SheetPileAnalysis:
         passive_pressures = [0]
         passive_K = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True)
         
+        # Build passive pressures from bottom to specified depth
         for depth in passive_depths[:-1]:
             pressure = passive_K * self.passive_layer['Unit Weight'] * (bottom_depth - depth)
             passive_pressures.insert(0, pressure)
@@ -129,6 +130,7 @@ class SheetPileAnalysis:
         ax.grid()
         st.pyplot(fig)
 
+# Streamlit UI for input and output
 st.title("Sheet Pile Analysis by Fabian J Manoppo")
 
 st.subheader("Material Properties")
