@@ -3,16 +3,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
 
-# Default properties for materials and soils
+# Material properties for selection
 material_properties = {
     "steel": {"Density": 7850.0, "Yield Strength": 250.0, "Modulus of Elasticity": 200000.0},
     "concrete": {"Density": 2400.0, "Compressive Strength": 30.0, "Modulus of Elasticity": 30000.0}
 }
 
+# Single soil type: "sandy clay"
 soil_properties = {
-    "sand": {"Unit Weight": 18.0, "Friction Angle": 35.0, "Cohesion": 0.0},
-    "clay": {"Unit Weight": 20.0, "Friction Angle": 0.0, "Cohesion": 25.0},
-    "sandy clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}  # Example properties for sandy clay
+    "sandy clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}
 }
 
 class SheetPileAnalysis:
@@ -83,11 +82,13 @@ class SheetPileAnalysis:
             if y_offset + height > self.groundwater_level:
                 gamma -= 9.81
             
+            # Calculate active pressure at the base of the layer
             pressure = Ka * gamma * height + (Ka * self.surcharge if y_offset == 0 else 0)
             active_pressures.append(active_pressures[-1] + pressure)
             y_offset += height
             depths.append(y_offset)
         
+        # Passive Pressure Calculation only from bottom for passive layer depth
         passive_depths = [self.total_depth, self.total_depth - self.passive_layer['Depth']]
         passive_pressures = [0]
         passive_K = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True)
@@ -101,14 +102,18 @@ class SheetPileAnalysis:
         active_interp = interp1d(depths, active_pressures, kind='linear', fill_value="extrapolate")(interp_depths)
         passive_interp = interp1d(passive_depths, passive_pressures, kind='linear', fill_value="extrapolate")(interp_depths)
         
+        # Plot Active and Passive Pressures
         ax.plot(active_interp, interp_depths, label="Active Pressure", color="red")
         ax.plot(passive_interp, interp_depths, label="Passive Pressure", color="blue")
 
-        ax.plot([0, 0], [0, -self.surcharge], 'g|-', linewidth=2, label='Surcharge Load')  # Surcharge arrow line
-        
+        # Draw Surcharge as Thick Line at Top
+        ax.axhline(y=0, color='green', linestyle='-', linewidth=3, label='Surcharge Load')  # Surcharge thick line at top
+
+        # Groundwater Level
         if self.groundwater_level < self.total_depth:
             ax.axhline(y=self.groundwater_level, color='blue', linestyle='--', label='Groundwater Level')
 
+        # Safety Indicator
         if safety_factor >= self.safety_factor_threshold:
             ax.text(0.5, 0.1, "Safe", color="green", transform=ax.transAxes, fontsize=20, fontweight='bold', ha='center', va='center')
         else:
@@ -131,28 +136,24 @@ st.write("Material Properties:")
 for prop, value in material.items():
     st.write(f"{prop}: {value}")
 
-st.subheader("Active Soil Layers")
+# All soil layers are of type "sandy clay"
+soil = soil_properties["sandy clay"]
 soil_layers = []
 num_layers = st.number_input("Enter number of active soil layers", min_value=1, max_value=5, value=2)
 
 for i in range(num_layers):
     st.write(f"Properties for Active Soil Layer {i + 1}")
-    soil_type = st.selectbox(f"Select Soil Type for Layer {i + 1}", options=list(soil_properties.keys()), key=f"soil_type_{i}")
-    soil = soil_properties[soil_type]
-    
     unit_weight = st.number_input(f"  Unit Weight of Layer {i + 1} (kN/m³): ", value=float(soil["Unit Weight"]), min_value=1.0)
     friction_angle = st.number_input(f"  Friction Angle of Layer {i + 1} (°): ", value=float(soil["Friction Angle"]), min_value=0.0, max_value=45.0)
     cohesion = st.number_input(f"  Cohesion of Layer {i + 1} (kPa): ", value=float(soil["Cohesion"]), min_value=0.0)
     depth = st.number_input(f"  Depth of Layer {i + 1} (m): ", min_value=1.0)
     soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Cohesion": cohesion, "Depth": depth})
 
+# Passive soil layer also of type "sandy clay"
 st.subheader("Passive Soil Layer Properties")
-passive_soil_type = st.selectbox("Select Passive Soil Type", options=list(soil_properties.keys()), key="passive_soil_type")
-passive_soil = soil_properties[passive_soil_type]
-
-passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", value=float(passive_soil["Unit Weight"]), min_value=1.0)
-passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", value=float(passive_soil["Friction Angle"]), min_value=0.0, max_value=45.0)
-passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", value=float(passive_soil["Cohesion"]), min_value=0.0)
+passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", value=float(soil["Unit Weight"]), min_value=1.0)
+passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", value=float(soil["Friction Angle"]), min_value=0.0, max_value=45.0)
+passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", value=float(soil["Cohesion"]), min_value=0.0)
 passive_depth = st.number_input("Depth of Passive Soil (m): ", min_value=1.0)
 passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Cohesion": passive_cohesion, "Depth": passive_depth}
 
