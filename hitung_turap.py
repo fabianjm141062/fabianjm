@@ -129,7 +129,7 @@ class SheetPileAnalysis:
         ax.grid()
         st.pyplot(fig)
 
-st.title("Sheet Pile Analysis")
+st.title("Sheet Pile Analysis by Fabian J Manoppo")
 
 st.subheader("Material Properties")
 material_type = st.selectbox("Select Material Type", options=list(material_properties.keys()))
