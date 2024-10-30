@@ -152,3 +152,24 @@ passive_soil = soil_properties[passive_soil_type]
 passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", value=float(passive_soil["Unit Weight"]), min_value=1.0)
 passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", value=float(passive_soil["Friction Angle"]), min_value=0.0, max_value=45.0)
 passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", value=float(passive_soil["Cohesion"]), min_value=0.0)
+passive_depth = st.number_input("Depth of Passive Soil (m): ", min_value=1.0)
+passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Cohesion": passive_cohesion, "Depth": passive_depth}
+
+st.subheader("Additional Parameters")
+surcharge = st.number_input("Surcharge Load (kN/m²): ", min_value=0.0)
+groundwater_level = st.number_input("Groundwater Level Depth from Top (m): ", min_value=0.0)
+analysis_method = st.selectbox("Select Analysis Method", options=["Rankine", "Coulomb"])
+
+# Calculate and display results when the button is clicked
+if st.button("Calculate"):
+    analysis = SheetPileAnalysis(material, soil_layers, passive_layer, surcharge, groundwater_level, analysis_method)
+    active_force, active_moment, passive_force, passive_moment, safety_factor = analysis.calculate_stability()
+    st.write("**Calculation Results:**")
+    st.write(f"Total Active Force: {active_force:.2f} kN")
+    st.write(f"Total Passive Force: {passive_force:.2f} kN")
+    st.write(f"Total Active Moment: {active_moment:.2f} kNm")
+    st.write(f"Total Passive Moment: {passive_moment:.2f} kNm")
+    st.write(f"Safety Factor: {safety_factor:.2f}")
+
+    st.subheader("Pressure Diagram and Safety Indicator")
+    analysis.plot_pressure_diagram(safety_factor)
