@@ -122,8 +122,8 @@ class SheetPileAnalysis:
 
         ax.set_xlabel("Pressure (kPa)")
         ax.set_ylabel("Depth (m)")
-        ax.invert_yaxis()  # Set y-axis to start from 0 at the top and increase downward
         ax.set_ylim(0, max_depth)
+        ax.invert_yaxis()  # Ensures the depth axis starts from 0 at the top and increases downward
         ax.set_title("Combined Active and Passive Earth Pressure Diagram")
         ax.legend()
         ax.grid()
