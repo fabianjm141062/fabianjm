@@ -5,13 +5,13 @@ from scipy.interpolate import interp1d
 
 # Default properties for materials and soils
 material_properties = {
-    "steel": {"Density": 7850, "Yield Strength": 250, "Modulus of Elasticity": 200000},
-    "concrete": {"Density": 2400, "Compressive Strength": 30, "Modulus of Elasticity": 30000}
+    "steel": {"Density": 7850.0, "Yield Strength": 250.0, "Modulus of Elasticity": 200000.0},
+    "concrete": {"Density": 2400.0, "Compressive Strength": 30.0, "Modulus of Elasticity": 30000.0}
 }
 
 soil_properties = {
-    "sand": {"Unit Weight": 18, "Friction Angle": 35, "Cohesion": 0},
-    "clay": {"Unit Weight": 20, "Friction Angle": 0, "Cohesion": 25}  # Example properties
+    "sand": {"Unit Weight": 18.0, "Friction Angle": 35.0, "Cohesion": 0.0},
+    "clay": {"Unit Weight": 20.0, "Friction Angle": 0.0, "Cohesion": 25.0}  # Example properties
 }
 
 class SheetPileAnalysis:
@@ -110,9 +110,9 @@ for i in range(num_layers):
     soil = soil_properties[soil_type]
     
     # Display and allow adjustment of default properties
-    unit_weight = st.number_input(f"  Unit Weight of Layer {i + 1} (kN/m³): ", value=soil["Unit Weight"], min_value=1.0)
-    friction_angle = st.number_input(f"  Friction Angle of Layer {i + 1} (°): ", value=soil["Friction Angle"], min_value=0.0, max_value=45.0)
-    cohesion = st.number_input(f"  Cohesion of Layer {i + 1} (kPa): ", value=soil["Cohesion"], min_value=0.0)
+    unit_weight = st.number_input(f"  Unit Weight of Layer {i + 1} (kN/m³): ", value=float(soil["Unit Weight"]), min_value=1.0)
+    friction_angle = st.number_input(f"  Friction Angle of Layer {i + 1} (°): ", value=float(soil["Friction Angle"]), min_value=0.0, max_value=45.0)
+    cohesion = st.number_input(f"  Cohesion of Layer {i + 1} (kPa): ", value=float(soil["Cohesion"]), min_value=0.0)
     depth = st.number_input(f"  Depth of Layer {i + 1} (m): ", min_value=1.0)
     soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Cohesion": cohesion, "Depth": depth})
 
@@ -122,9 +122,9 @@ passive_soil_type = st.selectbox("Select Passive Soil Type", options=list(soil_p
 passive_soil = soil_properties[passive_soil_type]
 
 # Display and allow adjustment of default properties
-passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", value=passive_soil["Unit Weight"], min_value=1.0)
-passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", value=passive_soil["Friction Angle"], min_value=0.0, max_value=45.0)
-passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", value=passive_soil["Cohesion"], min_value=0.0)
+passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", value=float(passive_soil["Unit Weight"]), min_value=1.0)
+passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", value=float(passive_soil["Friction Angle"]), min_value=0.0, max_value=45.0)
+passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", value=float(passive_soil["Cohesion"]), min_value=0.0)
 passive_depth = st.number_input("Depth of Passive Soil (m): ", min_value=1.0)
 passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Cohesion": passive_cohesion, "Depth": passive_depth}
 
