@@ -12,7 +12,7 @@ material_properties = {
 soil_properties = {
     "sand": {"Unit Weight": 18.0, "Friction Angle": 35.0, "Cohesion": 0.0},
     "clay": {"Unit Weight": 20.0, "Friction Angle": 0.0, "Cohesion": 25.0},
-    "sandy clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}  # Example properties for sandy clay
+    "sandy clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}
 }
 
 class SheetPileAnalysis:
@@ -150,4 +150,5 @@ passive_soil_type = st.selectbox("Select Passive Soil Type", options=list(soil_p
 passive_soil = soil_properties[passive_soil_type]
 
 passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", value=float(passive_soil["Unit Weight"]), min_value=1.0)
-passive_friction_angle
+passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", value=float(passive_soil["Friction Angle"]), min_value=0.0, max_value=45.0)
+passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", value=float(passive_soil["Cohesion"]), min_value=0.0)
