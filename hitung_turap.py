@@ -34,17 +34,18 @@ class SheetPileStability:
         for layer in self.soil_layers:
             Ka = self.calculate_earth_pressure_coefficient(layer['Friction Angle'])
             gamma = layer['Unit Weight']
+            cohesion = layer['Cohesion']
             height = layer['Depth']
             if y_offset + height > self.groundwater_level:
                 gamma -= 9.81
 
-            force = 0.5 * Ka * gamma * height ** 2
+            force = 0.5 * Ka * gamma * height ** 2 + cohesion * height  # Including cohesion in active force calculation
             moment = force * (y_offset + height / 3)
             active_moment += moment
             y_offset += height
 
         passive_K = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True)
-        passive_force = 0.5 * passive_K * self.passive_layer['Unit Weight'] * self.passive_layer['Depth'] ** 2
+        passive_force = 0.5 * passive_K * self.passive_layer['Unit Weight'] * self.passive_layer['Depth'] ** 2 + self.passive_layer['Cohesion'] * self.passive_layer['Depth']
         passive_moment = passive_force * (self.total_depth - self.passive_layer['Depth'] / 3)
 
         return active_moment, passive_moment
@@ -88,7 +89,7 @@ class SheetPileStability:
         st.pyplot(fig)
 
 # Streamlit UI for input
-st.title("Sheet Pile Stability Control by Fabian J Manoppo")
+st.title("Sheet Pile Stability Control")
 
 # Material selection for the sheet pile
 st.subheader("Select Sheet Pile Material")
@@ -106,15 +107,17 @@ for i in range(num_layers):
     st.write(f"Properties for Active Soil Layer {i + 1}")
     unit_weight = st.number_input(f"Unit Weight of Layer {i + 1} (kN/m³): ", min_value=1.0)
     friction_angle = st.number_input(f"Friction Angle of Layer {i + 1} (°): ", min_value=0.0, max_value=45.0)
+    cohesion = st.number_input(f"Cohesion of Layer {i + 1} (kPa): ", min_value=0.0)
     depth = st.number_input(f"Depth of Layer {i + 1} (m): ", min_value=1.0)
-    soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Depth": depth})
+    soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Cohesion": cohesion, "Depth": depth})
 
 # Passive soil layer properties with custom input
 st.subheader("Passive Soil Layer Properties")
 passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", min_value=1.0)
 passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", min_value=0.0, max_value=45.0)
+passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", min_value=0.0)
 passive_depth = st.number_input("Depth of Passive Soil (m): ", min_value=1.0)
-passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Depth": passive_depth}
+passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Cohesion": passive_cohesion, "Depth": passive_depth}
 
 # Additional parameters
 surcharge_load = st.number_input("Surcharge Load (kN/m²): ", min_value=0.0)
