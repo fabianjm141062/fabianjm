@@ -73,7 +73,7 @@ class SheetPileDesign:
             'Total Passive Force (kN)': [passive_force],
             'Total Active Moment (kNm)': [total_active_moment],
             'Total Passive Moment (kNm)': [passive_moment],
-            'Safety Factor': [round(safety_factor, 1.5)],
+            'Safety Factor': [round(safety_factor, 2)],
             'Stability': [stability]  # Add the stability result here
         }
         results_df = pd.DataFrame(results)
@@ -111,7 +111,7 @@ class SheetPileDesign:
         st.pyplot(fig)
 
 # Streamlit UI for input
-st.title("Sheet Pile Design Stability Analysis")
+st.title("Sheet Pile Design Stability Analysis oleh Fabian J Manoppo")
 
 # Material selection for the sheet pile
 st.subheader("Select Sheet Pile Material")
