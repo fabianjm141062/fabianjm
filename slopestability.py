@@ -95,7 +95,7 @@ def plot_slope(slope_height, slope_angle, FS, num_slices, method_name="Bishop"):
     st.pyplot(plt)
 
 # Streamlit application
-st.title("Slope Stability Analysis with Multiple Methods by Fabian J Manoppo")
+st.title("Slope Stability Analysis with Multiple Methods")
 
 # Input parameters
 slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
@@ -111,25 +111,26 @@ disturbance_factor = st.number_input("Hoek-Brown Disturbance Factor (D)", min_va
 # Select Method
 method = st.selectbox("Select Method", ["Bishop", "Culmann", "Taylor", "Hoek-Brown"])
 
-# Calculate FS based on selected method
-if method == "Bishop":
-    fs_bishop, calculation_table = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
-    st.write(f"Factor of Safety (FS) using {method} Method: {fs_bishop:.3f}")
-    st.write("Detailed Calculation Table for Bishop Method (Slice by Slice)")
-    st.dataframe(calculation_table)
-    plot_slope(slope_height, slope_angle, fs_bishop, num_slices, method_name="Bishop")
+# Calculate Button
+if st.button("Calculate"):
+    if method == "Bishop":
+        fs_bishop, calculation_table = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_bishop:.3f}")
+        st.write("Detailed Calculation Table for Bishop Method (Slice by Slice)")
+        st.dataframe(calculation_table)
+        plot_slope(slope_height, slope_angle, fs_bishop, num_slices, method_name="Bishop")
 
-elif method == "Culmann":
-    fs_culmann = calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
-    st.write(f"Factor of Safety (FS) using {method} Method: {fs_culmann:.3f}")
-    plot_slope(slope_height, slope_angle, fs_culmann, num_slices, method_name="Culmann")
+    elif method == "Culmann":
+        fs_culmann = calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_culmann:.3f}")
+        plot_slope(slope_height, slope_angle, fs_culmann, num_slices, method_name="Culmann")
 
-elif method == "Taylor":
-    fs_taylor = calculate_fs_taylor(cohesion, unit_weight, friction_angle, slope_height)
-    st.write(f"Factor of Safety (FS) using {method} Method: {fs_taylor:.3f}")
-    plot_slope(slope_height, slope_angle, fs_taylor, num_slices, method_name="Taylor")
+    elif method == "Taylor":
+        fs_taylor = calculate_fs_taylor(cohesion, unit_weight, friction_angle, slope_height)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_taylor:.3f}")
+        plot_slope(slope_height, slope_angle, fs_taylor, num_slices, method_name="Taylor")
 
-elif method == "Hoek-Brown":
-    fs_hoek_brown = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height)
-    st.write(f"Factor of Safety (FS) using {method} Method: {fs_hoek_brown:.3f}")
-    plot_slope(slope_height, slope_angle, fs_hoek_brown, num_slices, method_name="Hoek-Brown")
+    elif method == "Hoek-Brown":
+        fs_hoek_brown = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_hoek_brown:.3f}")
+        plot_slope(slope_height, slope_angle, fs_hoek_brown, num_slices, method_name="Hoek-Brown")
