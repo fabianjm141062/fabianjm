@@ -95,7 +95,7 @@ def plot_slope(slope_height, slope_angle, FS, num_slices, method_name="Bishop"):
     st.pyplot(plt)
 
 # Streamlit application
-st.title("Slope Stability Analysis with Multiple Methods")
+st.title("Slope Stability Analysis with Multiple Methods by Fabian J Manoppo")
 
 # Input parameters
 slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
