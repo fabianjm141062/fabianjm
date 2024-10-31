@@ -1,7 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import interp1d
 
 # Material properties for selection
 material_properties = {
@@ -32,42 +31,14 @@ class SheetPileAnalysis:
         elif self.analysis_method == "coulomb":
             phi = np.radians(friction_angle)
             if is_passive:
-                # Coulomb's passive earth pressure coefficient
                 K = (np.cos(phi) + np.sqrt(np.cos(phi)**2 - np.cos(np.radians(45 - friction_angle / 2))**2)) / np.cos(phi)
             else:
-                # Coulomb's active earth pressure coefficient
                 K = (np.cos(phi) - np.sqrt(np.cos(phi)**2 - np.cos(np.radians(45 + friction_angle / 2))**2)) / np.cos(phi)
         else:
             raise ValueError("Unknown method. Please choose 'Rankine' or 'Coulomb'.")
         return K
 
-    def calculate_stability(self):
-        active_moment = 0
-        passive_moment = 0
-        active_force = 0
-        passive_force = 0
-
-        for layer in self.soil_layers:
-            Ka = self.calculate_earth_pressure_coefficient(layer['Friction Angle'])
-            gamma = layer['Unit Weight']
-            height = layer['Depth']
-            if self.groundwater_level < height:
-                gamma -= 9.81
-            
-            pressure = Ka * gamma * height + (Ka * self.surcharge if layer['Depth'] == self.soil_layers[0]['Depth'] else 0)
-            force = pressure * height
-            moment = force * height / 3
-            active_force += force
-            active_moment += moment
-        
-        passive_K = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True)
-        passive_force = passive_K * self.passive_layer['Unit Weight'] * self.passive_layer['Depth']
-        passive_moment = passive_force * self.passive_layer['Depth'] / 3
-        
-        safety_factor = passive_moment / active_moment
-        return active_force, active_moment, passive_force, passive_moment, safety_factor
-
-    def plot_pressure_diagram(self, safety_factor):
+    def plot_pressure_diagram(self):
         fig, ax = plt.subplots(figsize=(8, 10))
         
         # Active Pressure Calculation with surcharge and groundwater effect
@@ -82,7 +53,6 @@ class SheetPileAnalysis:
             if y_offset + height > self.groundwater_level:
                 gamma -= 9.81
             
-            # Calculate active pressure at the base of the layer
             pressure = Ka * gamma * height + (Ka * self.surcharge if y_offset == 0 else 0)
             active_pressures.append(active_pressures[-1] + pressure)
             y_offset += height
@@ -94,44 +64,32 @@ class SheetPileAnalysis:
         passive_pressures = [0]
         passive_K = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True)
         
-        # Build passive pressures from bottom to specified depth
         for depth in passive_depths[:-1]:
             pressure = passive_K * self.passive_layer['Unit Weight'] * (bottom_depth - depth)
             passive_pressures.insert(0, pressure)
         
-        max_depth = max(self.total_depth, bottom_depth - self.passive_layer['Depth'])
-        interp_depths = np.linspace(0, max_depth, num=100)
-        active_interp = interp1d(depths, active_pressures, kind='linear', fill_value="extrapolate")(interp_depths)
-        passive_interp = interp1d(passive_depths, passive_pressures, kind='linear', fill_value="extrapolate")(interp_depths)
+        interp_depths = np.linspace(0, self.total_depth, num=100)
         
-        # Plot Active and Passive Pressures
-        ax.plot(active_interp, interp_depths, label="Active Pressure", color="red")
-        ax.plot(passive_interp, interp_depths, label="Passive Pressure", color="blue")
+        # Plot Active and Passive Pressures as Shaded Areas
+        ax.fill_betweenx(interp_depths, 0, np.interp(interp_depths, depths, active_pressures), color="red", alpha=0.3, label="Active Pressure")
+        ax.fill_betweenx(interp_depths, np.interp(interp_depths, passive_depths, passive_pressures), 0, color="blue", alpha=0.3, label="Passive Pressure")
 
-        # Draw Surcharge as Thick Line at Top
-        ax.axhline(y=0, color='green', linestyle='-', linewidth=3, label='Surcharge Load')  # Surcharge thick line at top
+        # Surcharge Load as a Vertical Line
+        ax.axvline(x=self.surcharge, color="black", linewidth=4, label="Surcharge Load")
 
-        # Groundwater Level
-        if self.groundwater_level < self.total_depth:
-            ax.axhline(y=self.groundwater_level, color='blue', linestyle='--', label='Groundwater Level')
-
-        # Safety Indicator
-        if safety_factor >= self.safety_factor_threshold:
-            ax.text(0.5, 0.1, "Safe", color="green", transform=ax.transAxes, fontsize=20, fontweight='bold', ha='center', va='center')
-        else:
-            ax.text(0.5, 0.1, "Not Safe", color="red", transform=ax.transAxes, fontsize=20, fontweight='bold', ha='center', va='center')
+        # Groundwater Level as a Dashed Line
+        ax.axhline(y=self.groundwater_level, color="blue", linestyle="--", label="Groundwater Level")
+        ax.text(self.surcharge, self.groundwater_level, "Muka Air Tanah", color="blue", va="bottom", ha="right")
 
         ax.set_xlabel("Pressure (kPa)")
         ax.set_ylabel("Depth (m)")
-        ax.set_ylim(0, max_depth)
         ax.invert_yaxis()  # Ensures the depth axis starts from 0 at the top and increases downward
-        ax.set_title("Combined Active and Passive Earth Pressure Diagram")
+        ax.set_title("Diagram Tekanan Tanah Aktif dan Pasif dengan Surcharge dan Muka Air Tanah")
         ax.legend()
         ax.grid()
         st.pyplot(fig)
 
-# Streamlit UI for input and output
-st.title("Sheet Pile Analysis by Fabian J Manoppo")
+st.title("Sheet Pile Analysis")
 
 st.subheader("Material Properties")
 material_type = st.selectbox("Select Material Type", options=list(material_properties.keys()))
@@ -169,13 +127,5 @@ analysis_method = st.selectbox("Select Analysis Method", options=["Rankine", "Co
 # Calculate and display results when the button is clicked
 if st.button("Calculate"):
     analysis = SheetPileAnalysis(material, soil_layers, passive_layer, surcharge, groundwater_level, analysis_method)
-    active_force, active_moment, passive_force, passive_moment, safety_factor = analysis.calculate_stability()
-    st.write("**Calculation Results:**")
-    st.write(f"Total Active Force: {active_force:.2f} kN")
-    st.write(f"Total Passive Force: {passive_force:.2f} kN")
-    st.write(f"Total Active Moment: {active_moment:.2f} kNm")
-    st.write(f"Total Passive Moment: {passive_moment:.2f} kNm")
-    st.write(f"Safety Factor: {safety_factor:.2f}")
-
-    st.subheader("Pressure Diagram and Safety Indicator")
-    analysis.plot_pressure_diagram(safety_factor)
+    st.subheader("Pressure Diagram")
+    analysis.plot_pressure_diagram()
