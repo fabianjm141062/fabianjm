@@ -73,7 +73,7 @@ class SheetPileDesign:
             'Total Passive Force (kN)': [passive_force],
             'Total Active Moment (kNm)': [total_active_moment],
             'Total Passive Moment (kNm)': [passive_moment],
-            'Safety Factor': [round(safety_factor, 2)],
+            'Safety Factor': [round(safety_factor, 1.5)],
             'Stability': [stability]  # Add the stability result here
         }
         results_df = pd.DataFrame(results)
