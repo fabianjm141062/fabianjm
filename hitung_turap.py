@@ -9,8 +9,8 @@ material_properties = {
     "Prestressed Concrete": {"Density": 2400.0, "Compressive Strength": 30.0, "Modulus of Elasticity": 30000.0}
 }
 
-# Different soil types and their properties
-soil_types = {
+# Default properties for different soil types
+default_soil_types = {
     "Sand": {"Unit Weight": 18.0, "Friction Angle": 30.0, "Cohesion": 0.0},
     "Clay": {"Unit Weight": 17.0, "Friction Angle": 0.0, "Cohesion": 25.0},
     "Sandy Clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}
@@ -133,19 +133,32 @@ num_layers = st.number_input("Enter number of active soil layers", min_value=1, 
 
 for i in range(num_layers):
     st.write(f"Properties for Active Soil Layer {i + 1}")
-    soil_type = st.selectbox(f"Select Soil Type for Layer {i + 1}", options=list(soil_types.keys()), key=f"soil_type_{i}")
-    unit_weight = soil_types[soil_type]["Unit Weight"]
-    friction_angle = soil_types[soil_type]["Friction Angle"]
-    cohesion = soil_types[soil_type]["Cohesion"]
+    soil_type = st.selectbox(f"Select Soil Type for Layer {i + 1}", options=list(default_soil_types.keys()) + ["Custom"], key=f"soil_type_{i}")
+
+    if soil_type != "Custom":
+        unit_weight = default_soil_types[soil_type]["Unit Weight"]
+        friction_angle = default_soil_types[soil_type]["Friction Angle"]
+        cohesion = default_soil_types[soil_type]["Cohesion"]
+    else:
+        # Custom input
+        unit_weight = st.number_input(f"Unit Weight of Layer {i + 1} (kN/m³): ", min_value=1.0)
+        friction_angle = st.number_input(f"Friction Angle of Layer {i + 1} (°): ", min_value=0.0, max_value=45.0)
+        cohesion = st.number_input(f"Cohesion of Layer {i + 1} (kPa): ", min_value=0.0)
+
     depth = st.number_input(f"Depth of Layer {i + 1} (m): ", min_value=1.0)
     soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Cohesion": cohesion, "Depth": depth})
 
 # Passive soil layer properties with soil type selection
 st.subheader("Passive Soil Layer Properties")
-passive_soil_type = st.selectbox("Select Passive Soil Type", options=list(soil_types.keys()))
-passive_unit_weight = soil_types[passive_soil_type]["Unit Weight"]
-passive_friction_angle = soil_types[passive_soil_type]["Friction Angle"]
-passive_cohesion = soil_types[passive_soil_type]["Cohesion"]
+passive_soil_type = st.selectbox("Select Passive Soil Type", options=list(default_soil_types.keys()) + ["Custom"])
+if passive_soil_type != "Custom":
+    passive_unit_weight = default_soil_types[passive_soil_type]["Unit Weight"]
+    passive_friction_angle = default_soil_types[passive_soil_type]["Friction Angle"]
+    passive_cohesion = default_soil_types[passive_soil_type]["Cohesion"]
+else:
+    passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", min_value=1.0)
+    passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", min_value=0.0, max_value=45.0)
+    passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", min_value=0.0)
 passive_depth = st.number_input("Depth of Passive Soil (m): ", min_value=1.0)
 passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Cohesion": passive_cohesion, "Depth": passive_depth}
 
