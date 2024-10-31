@@ -75,7 +75,7 @@ class SheetPileStability:
         ax.fill_betweenx([0, self.total_depth], 0, active_base, color='red', alpha=0.3, label='Active Pressure')
         ax.fill_betweenx([self.total_depth - self.passive_layer['Depth'], self.total_depth], 0, -passive_base, color='blue', alpha=0.3, label='Passive Pressure')
 
-        ax.plot([0, active_base], [0, 0], 'k-', lw=2, label='Surcharge Load (q)')
+        ax.plot([0, active_base], [0, 0], color='red', linewidth=6, label='Surcharge Load (q)')
         if self.groundwater_level < self.total_depth:
             ax.plot([-1.5 * passive_base, 1.5 * active_base], [self.groundwater_level, self.groundwater_level], 'b--', label='Groundwater Level')
 
