@@ -64,7 +64,7 @@ class SheetPileDesign:
         total_active_force, total_active_moment, passive_force, passive_moment = self.calculate_forces_and_moments()
 
         # Calculate the safety factor
-        safety_factor = passive_moment / total_active_moment
+        safety_factor = abs(passive_moment / total_active_moment) if total_active_moment != 0 else 0
         stability = "Safe" if safety_factor >= self.required_safety_factor else "Unsafe"
 
         # Summary of results
