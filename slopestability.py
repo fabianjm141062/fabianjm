@@ -3,19 +3,18 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Bishop Method Calculation
+# Bishop Method Calculation with Table Output
 def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices, tolerance=0.001, max_iterations=100):
     FS = 1.0  # Initial guess for FS
     slice_width = slope_height / num_slices
-    R = slope_height / np.sin(slope_angle)  # Radius of the circular slip surface
-    table_data = []  # To store detailed calculation results
+    R = slope_height  # Radius set to slope height to keep failure surface within slope profile
+    table_data = []
 
     for _ in range(max_iterations):
         numerator_sum = 0
         denominator_sum = 0
         slice_results = []
         
-        # Loop over each slice
         for i in range(num_slices):
             x = (i + 0.5) * slice_width
             theta = np.arctan(slice_width / R)
@@ -31,7 +30,6 @@ def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slo
             
             slice_results.append({"Slice": i + 1, "Weight (W)": weight, "Normal Force (N)": normal_force, "Shear Resistance (T)": shear_resistance})
         
-        # Update FS
         new_FS = numerator_sum / denominator_sum
         if abs(new_FS - FS) < tolerance:
             FS = new_FS
@@ -41,14 +39,14 @@ def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slo
 
     return FS, pd.DataFrame(table_data)
 
-# Culmann's Method Calculation (planar failure)
+# Culmann's Method Calculation
 def calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle):
     slope_angle_deg = np.degrees(slope_angle)
-    critical_angle = 45 - (friction_angle / 2)  # Critical failure angle in degrees
+    critical_angle = 45 - (np.degrees(friction_angle) / 2)  # Critical failure angle in degrees
     FS = cohesion / (unit_weight * slope_height * np.sin(np.radians(slope_angle_deg - critical_angle)) * np.cos(np.radians(critical_angle)))
     return FS
 
-# Taylor's Method Calculation (circular failure)
+# Taylor's Method Calculation
 def calculate_fs_taylor(cohesion, unit_weight, friction_angle, slope_height):
     N = 0.261  # Taylor's stability number for φ = 20 degrees and homogeneous slope
     FS = cohesion / (unit_weight * slope_height * N)
@@ -64,20 +62,24 @@ def calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, 
     return FS
 
 # Function to plot slope and failure surface (for Bishop)
-def plot_slope(slope_height, slope_angle, R, FS, num_slices):
+def plot_slope(slope_height, slope_angle, FS, num_slices, method_name="Bishop"):
     slope_width = slope_height / np.tan(slope_angle)
     x_slope = [0, slope_width]
     y_slope = [0, slope_height]
 
+    # Set failure surface center and radius
+    R = slope_height if method_name == "Bishop" else slope_height * 0.9
     center_x = slope_width / 2
-    center_y = 0  # Set center to start at slope base
+    center_y = slope_height - R
+
+    # Generate failure surface arc
     theta = np.linspace(0, np.pi, 100)
     x_circle = center_x + R * np.cos(theta)
     y_circle = center_y + R * np.sin(theta)
 
     plt.figure(figsize=(10, 6))
     plt.plot(x_slope, y_slope, color='black', linewidth=2, label='Slope Surface')
-    plt.plot(x_circle, y_circle, color='red', linestyle='--', label='Bishop Failure Surface')
+    plt.plot(x_circle, y_circle, color='red', linestyle='--', label=f'{method_name} Failure Surface')
 
     slice_width = slope_width / num_slices
     for i in range(num_slices):
@@ -85,7 +87,7 @@ def plot_slope(slope_height, slope_angle, R, FS, num_slices):
         y = x * np.tan(slope_angle)
         plt.plot([x, x], [0, y], color='blue', linestyle=':', linewidth=1)
 
-    plt.title(f"Slope Stability Analysis (Bishop Method) - FS: {FS:.3f}")
+    plt.title(f"Slope Stability Analysis ({method_name} Method) - FS: {FS:.3f}")
     plt.xlabel("Width (m)")
     plt.ylabel("Height (m)")
     plt.legend()
@@ -93,7 +95,7 @@ def plot_slope(slope_height, slope_angle, R, FS, num_slices):
     st.pyplot(plt)
 
 # Streamlit application
-st.title("Slope Stability Analysis Using Multiple Methods by Fabian J Manoppo")
+st.title("Slope Stability Analysis with Multiple Methods")
 
 # Input parameters
 slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
@@ -106,23 +108,28 @@ rock_strength = st.number_input("Rock Strength for Hoek-Brown (MPa)", min_value=
 mi = st.number_input("Hoek-Brown Material Constant (mi)", min_value=0.0, value=10.0)
 disturbance_factor = st.number_input("Hoek-Brown Disturbance Factor (D)", min_value=0.0, max_value=1.0, value=0.5)
 
-# Calculate FS for each method
-R = slope_height / np.sin(slope_angle)  # Radius of the circular slip surface for Bishop
-fs_bishop, calculation_table = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
-fs_culmann = calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
-fs_taylor = calculate_fs_taylor(cohesion, unit_weight, friction_angle, slope_height)
-fs_hoek_brown = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height)
+# Select Method
+method = st.selectbox("Select Method", ["Bishop", "Culmann", "Taylor", "Hoek-Brown"])
 
-# Display FS results
-st.write("### Factor of Safety (FS) Calculations")
-st.write(f"Bishop Method: {fs_bishop:.3f}")
-st.write(f"Culmann Method: {fs_culmann:.3f}")
-st.write(f"Taylor Method: {fs_taylor:.3f}")
-st.write(f"Hoek-Brown Criterion: {fs_hoek_brown:.3f}")
+# Calculate FS based on selected method
+if method == "Bishop":
+    fs_bishop, calculation_table = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+    st.write(f"Factor of Safety (FS) using {method} Method: {fs_bishop:.3f}")
+    st.write("Detailed Calculation Table for Bishop Method (Slice by Slice)")
+    st.dataframe(calculation_table)
+    plot_slope(slope_height, slope_angle, fs_bishop, num_slices, method_name="Bishop")
 
-# Display calculation table for Bishop Method
-st.write("### Detailed Calculation Table for Bishop Method (Slice by Slice)")
-st.dataframe(calculation_table)
+elif method == "Culmann":
+    fs_culmann = calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
+    st.write(f"Factor of Safety (FS) using {method} Method: {fs_culmann:.3f}")
+    plot_slope(slope_height, slope_angle, fs_culmann, num_slices, method_name="Culmann")
 
-# Plot slope and failure surface for Bishop Method
-plot_slope(slope_height, slope_angle, R, fs_bishop, num_slices)
+elif method == "Taylor":
+    fs_taylor = calculate_fs_taylor(cohesion, unit_weight, friction_angle, slope_height)
+    st.write(f"Factor of Safety (FS) using {method} Method: {fs_taylor:.3f}")
+    plot_slope(slope_height, slope_angle, fs_taylor, num_slices, method_name="Taylor")
+
+elif method == "Hoek-Brown":
+    fs_hoek_brown = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height)
+    st.write(f"Factor of Safety (FS) using {method} Method: {fs_hoek_brown:.3f}")
+    plot_slope(slope_height, slope_angle, fs_hoek_brown, num_slices, method_name="Hoek-Brown")
