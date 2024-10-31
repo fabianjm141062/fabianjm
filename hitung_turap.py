@@ -110,7 +110,7 @@ class SheetPileDesign:
         st.pyplot(fig)
 
 # Streamlit UI for input
-st.title("Sheet Pile Design Stability Analysis")
+st.title("Sheet Pile Design Stability Analysis by Fabian J Manoppo")
 
 # Material selection for the sheet pile
 st.subheader("Select Sheet Pile Material")
