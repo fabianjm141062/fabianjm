@@ -69,14 +69,15 @@ class SheetPileDesign:
 
         # Summary of results
         results = {
-            'Total Active Force (kN)': total_active_force,
-            'Total Passive Force (kN)': passive_force,
-            'Total Active Moment (kNm)': total_active_moment,
-            'Total Passive Moment (kNm)': passive_moment,
-            'Safety Factor': round(safety_factor, 2),
-            'Stability': stability  # Add the stability result here
+            'Total Active Force (kN)': [total_active_force],
+            'Total Passive Force (kN)': [passive_force],
+            'Total Active Moment (kNm)': [total_active_moment],
+            'Total Passive Moment (kNm)': [passive_moment],
+            'Safety Factor': [round(safety_factor, 2)],
+            'Stability': [stability]  # Add the stability result here
         }
-        return pd.DataFrame([results])
+        results_df = pd.DataFrame(results)
+        return results_df
 
     def plot_pressure_diagram(self):
         fig, ax = plt.subplots(figsize=(6, 8))
@@ -110,7 +111,7 @@ class SheetPileDesign:
         st.pyplot(fig)
 
 # Streamlit UI for input
-st.title("Sheet Pile Design Stability Analysis by Fabian J Manoppo")
+st.title("Sheet Pile Design Stability Analysis")
 
 # Material selection for the sheet pile
 st.subheader("Select Sheet Pile Material")
@@ -150,7 +151,7 @@ design = SheetPileDesign(material, soil_layers, passive_layer, surcharge_load, g
 if st.button("Calculate"):
     stability_results = design.stability_analysis()
     st.subheader("Stability Analysis Results")
-    st.dataframe(stability_results)
+    st.dataframe(stability_results)  # Display DataFrame with Safety Factor and Stability
 
     # Plot the pressure diagram
     st.subheader("Pressure Diagram")
