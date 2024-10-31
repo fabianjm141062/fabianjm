@@ -1,131 +1,155 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
-# Material properties for selection
+# Material properties for sheet pile selection
 material_properties = {
-    "steel": {"Density": 7850.0, "Yield Strength": 250.0, "Modulus of Elasticity": 200000.0},
-    "concrete": {"Density": 2400.0, "Compressive Strength": 30.0, "Modulus of Elasticity": 30000.0}
+    "Steel": {"Density": 7850.0, "Yield Strength": 250.0, "Modulus of Elasticity": 200000.0},
+    "Prestressed Concrete": {"Density": 2400.0, "Compressive Strength": 30.0, "Modulus of Elasticity": 30000.0}
 }
 
-# Single soil type: "sandy clay"
-soil_properties = {
-    "sandy clay": {"Unit Weight": 19.0, "Friction Angle": 20.0, "Cohesion": 10.0}
-}
-
-class SheetPileAnalysis:
-    def __init__(self, material, soil_layers, passive_layer, surcharge, groundwater_level, analysis_method, safety_factor_threshold=1.5):
+class SheetPileDesign:
+    def __init__(self, material, soil_layers, passive_layer, surcharge_load, groundwater_level, required_safety_factor=1.5):
         self.material = material
         self.soil_layers = soil_layers
         self.passive_layer = passive_layer
-        self.surcharge = surcharge
+        self.surcharge_load = surcharge_load
         self.groundwater_level = groundwater_level
-        self.analysis_method = analysis_method.lower()
-        self.safety_factor_threshold = safety_factor_threshold
-        self.total_depth = sum(layer['Depth'] for layer in soil_layers)
+        self.required_safety_factor = required_safety_factor
+        self.total_depth = sum(layer['Depth'] for layer in soil_layers)  # Total depth of active soil
 
     def calculate_earth_pressure_coefficient(self, friction_angle, is_passive=False):
-        if self.analysis_method == "rankine":
-            angle_factor = (45 + friction_angle / 2) if is_passive else (45 - friction_angle / 2)
-            K = np.tan(np.radians(angle_factor)) ** 2
-        elif self.analysis_method == "coulomb":
-            phi = np.radians(friction_angle)
-            if is_passive:
-                K = (np.cos(phi) + np.sqrt(np.cos(phi)**2 - np.cos(np.radians(45 - friction_angle / 2))**2)) / np.cos(phi)
-            else:
-                K = (np.cos(phi) - np.sqrt(np.cos(phi)**2 - np.cos(np.radians(45 + friction_angle / 2))**2)) / np.cos(phi)
+        # Using Rankine's formula for simplicity
+        if is_passive:
+            K = np.tan(np.radians(45 + friction_angle / 2)) ** 2
         else:
-            raise ValueError("Unknown method. Please choose 'Rankine' or 'Coulomb'.")
+            K = np.tan(np.radians(45 - friction_angle / 2)) ** 2
         return K
 
-    def plot_pressure_diagram(self):
-        fig, ax = plt.subplots(figsize=(8, 10))
-        
-        # Active Pressure Calculation with surcharge and groundwater effect
-        depths = [0]
-        active_pressures = [0]
-        y_offset = 0
-        
+    def calculate_forces_and_moments(self):
+        # Calculate active forces and moments
+        active_forces = []
+        active_moments = []
+        y_offset = 0  # Starting depth
+
         for layer in self.soil_layers:
             Ka = self.calculate_earth_pressure_coefficient(layer['Friction Angle'])
             gamma = layer['Unit Weight']
             height = layer['Depth']
+
+            # Adjust for submerged weight if layer is below groundwater level
             if y_offset + height > self.groundwater_level:
-                gamma -= 9.81
-            
-            pressure = Ka * gamma * height + (Ka * self.surcharge if y_offset == 0 else 0)
-            active_pressures.append(active_pressures[-1] + pressure)
+                gamma -= 9.81  # Reduce by the unit weight of water
+
+            # Calculate active force and moment for each layer
+            force = 0.5 * Ka * gamma * height ** 2
+            moment = force * (y_offset + height / 3)  # Moment about the bottom
+            active_forces.append(force)
+            active_moments.append(moment)
             y_offset += height
-            depths.append(y_offset)
-        
-        # Passive Pressure Calculation only from bottom for passive layer depth
-        bottom_depth = self.total_depth
-        passive_depths = [bottom_depth, bottom_depth - self.passive_layer['Depth']]
-        passive_pressures = [0]
+
+        total_active_force = sum(active_forces)
+        total_active_moment = sum(active_moments)
+
+        # Calculate passive forces and moments
         passive_K = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True)
-        
-        for depth in passive_depths[:-1]:
-            pressure = passive_K * self.passive_layer['Unit Weight'] * (bottom_depth - depth)
-            passive_pressures.insert(0, pressure)
-        
-        interp_depths = np.linspace(0, self.total_depth, num=100)
-        
-        # Plot Active and Passive Pressures as Shaded Areas
-        ax.fill_betweenx(interp_depths, 0, np.interp(interp_depths, depths, active_pressures), color="red", alpha=0.3, label="Active Pressure")
-        ax.fill_betweenx(interp_depths, np.interp(interp_depths, passive_depths, passive_pressures), 0, color="blue", alpha=0.3, label="Passive Pressure")
+        passive_force = 0.5 * passive_K * self.passive_layer['Unit Weight'] * self.passive_layer['Depth'] ** 2
+        passive_moment = passive_force * (self.total_depth - self.passive_layer['Depth'] / 3)
 
-        # Surcharge Load as a Vertical Line
-        ax.axvline(x=self.surcharge, color="black", linewidth=4, label="Surcharge Load")
+        return total_active_force, total_active_moment, passive_force, passive_moment
 
-        # Groundwater Level as a Dashed Line
-        ax.axhline(y=self.groundwater_level, color="blue", linestyle="--", label="Groundwater Level")
-        ax.text(self.surcharge, self.groundwater_level, "Muka Air Tanah", color="blue", va="bottom", ha="right")
+    def stability_analysis(self):
+        # Calculate forces and moments
+        total_active_force, total_active_moment, passive_force, passive_moment = self.calculate_forces_and_moments()
 
+        # Calculate the safety factor
+        safety_factor = passive_moment / total_active_moment
+        stability = "Safe" if safety_factor >= self.required_safety_factor else "Unsafe"
+
+        # Summary of results
+        results = {
+            'Total Active Force (kN)': total_active_force,
+            'Total Passive Force (kN)': passive_force,
+            'Total Active Moment (kNm)': total_active_moment,
+            'Total Passive Moment (kNm)': passive_moment,
+            'Safety Factor': safety_factor,
+            'Stability': stability
+        }
+        return pd.DataFrame([results])
+
+    def plot_pressure_diagram(self):
+        fig, ax = plt.subplots(figsize=(6, 8))
+        ax.set_xlim(-1.5 * self.passive_layer['Depth'], 1.5 * self.total_depth)  # Set x-axis limits
+        ax.set_ylim(0, self.total_depth)  # Set y-axis limits for depth
+
+        # Draw the sheet pile as a black rectangle
+        ax.plot([0, 0], [0, self.total_depth], color='black', linewidth=8)
+
+        # Plot active and passive pressures as triangles
+        active_base = self.calculate_earth_pressure_coefficient(self.soil_layers[-1]['Friction Angle']) * self.soil_layers[-1]['Unit Weight'] * self.total_depth
+        passive_base = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True) * self.passive_layer['Unit Weight'] * self.passive_layer['Depth']
+        ax.fill_betweenx([0, self.total_depth], 0, active_base, color='red', alpha=0.3, label='Active Pressure')
+        ax.fill_betweenx([self.total_depth - self.passive_layer['Depth'], self.total_depth], 0, -passive_base, color='blue', alpha=0.3, label='Passive Pressure')
+
+        # Surcharge load as a horizontal line on the active side
+        ax.plot([0, active_base], [0, 0], 'k-', lw=2, label='Surcharge Load (q)')
+
+        # Groundwater level as a dashed blue line
+        if self.groundwater_level < self.total_depth:
+            ax.plot([-1.5 * passive_base, 1.5 * active_base], [self.groundwater_level, self.groundwater_level], 'b--', label='Groundwater Level')
+
+        # Set labels and title
         ax.set_xlabel("Pressure (kPa)")
         ax.set_ylabel("Depth (m)")
-        ax.invert_yaxis()  # Ensures the depth axis starts from 0 at the top and increases downward
-        ax.set_title("Diagram Tekanan Tanah Aktif dan Pasif dengan Surcharge dan Muka Air Tanah")
-        ax.legend()
-        ax.grid()
+        ax.set_title("Active and Passive Earth Pressure Diagram with Surcharge and Groundwater Level")
+
+        plt.gca().invert_yaxis()  # Invert y-axis to represent depth
+        plt.grid()
+        plt.legend()
         st.pyplot(fig)
 
-st.title("Sheet Pile Analysis")
+# Streamlit UI for input
+st.title("Sheet Pile Design Stability Analysis by Fabian J Manoppo")
 
-st.subheader("Material Properties")
-material_type = st.selectbox("Select Material Type", options=list(material_properties.keys()))
+# Material selection for the sheet pile
+st.subheader("Select Sheet Pile Material")
+material_type = st.selectbox("Material Type", options=list(material_properties.keys()))
 material = material_properties[material_type]
 st.write("Material Properties:")
 for prop, value in material.items():
     st.write(f"{prop}: {value}")
 
-# All soil layers are of type "sandy clay"
-soil = soil_properties["sandy clay"]
+# Input for soil properties
 soil_layers = []
 num_layers = st.number_input("Enter number of active soil layers", min_value=1, max_value=5, value=2)
 
 for i in range(num_layers):
     st.write(f"Properties for Active Soil Layer {i + 1}")
-    unit_weight = st.number_input(f"  Unit Weight of Layer {i + 1} (kN/m³): ", value=float(soil["Unit Weight"]), min_value=1.0)
-    friction_angle = st.number_input(f"  Friction Angle of Layer {i + 1} (°): ", value=float(soil["Friction Angle"]), min_value=0.0, max_value=45.0)
-    cohesion = st.number_input(f"  Cohesion of Layer {i + 1} (kPa): ", value=float(soil["Cohesion"]), min_value=0.0)
-    depth = st.number_input(f"  Depth of Layer {i + 1} (m): ", min_value=1.0)
-    soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Cohesion": cohesion, "Depth": depth})
+    unit_weight = st.number_input(f"Unit Weight of Layer {i + 1} (kN/m³): ", min_value=1.0)
+    friction_angle = st.number_input(f"Friction Angle of Layer {i + 1} (°): ", min_value=0.0, max_value=45.0)
+    depth = st.number_input(f"Depth of Layer {i + 1} (m): ", min_value=1.0)
+    soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Depth": depth})
 
-# Passive soil layer also of type "sandy clay"
+# Passive soil properties
 st.subheader("Passive Soil Layer Properties")
-passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", value=float(soil["Unit Weight"]), min_value=1.0)
-passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", value=float(soil["Friction Angle"]), min_value=0.0, max_value=45.0)
-passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", value=float(soil["Cohesion"]), min_value=0.0)
+passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", min_value=1.0)
+passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", min_value=0.0, max_value=45.0)
 passive_depth = st.number_input("Depth of Passive Soil (m): ", min_value=1.0)
-passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Cohesion": passive_cohesion, "Depth": passive_depth}
+passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Depth": passive_depth}
 
-st.subheader("Additional Parameters")
-surcharge = st.number_input("Surcharge Load (kN/m²): ", min_value=0.0)
+# Additional parameters
+surcharge_load = st.number_input("Surcharge Load (kN/m²): ", min_value=0.0)
 groundwater_level = st.number_input("Groundwater Level Depth from Top (m): ", min_value=0.0)
-analysis_method = st.selectbox("Select Analysis Method", options=["Rankine", "Coulomb"])
 
-# Calculate and display results when the button is clicked
+# Initialize and calculate stability
+design = SheetPileDesign(material, soil_layers, passive_layer, surcharge_load, groundwater_level)
+
 if st.button("Calculate"):
-    analysis = SheetPileAnalysis(material, soil_layers, passive_layer, surcharge, groundwater_level, analysis_method)
+    stability_results = design.stability_analysis()
+    st.subheader("Stability Analysis Results")
+    st.dataframe(stability_results)
+
+    # Plot the pressure diagram
     st.subheader("Pressure Diagram")
-    analysis.plot_pressure_diagram()
+    design.plot_pressure_diagram()
