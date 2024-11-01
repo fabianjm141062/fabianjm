@@ -1,135 +1,151 @@
 import streamlit as st
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import numpy as np
 
-# Material properties for sheet pile selection
-material_properties = {
-    "Steel": {"Density": 7850.0, "Yield Strength": 250.0, "Modulus of Elasticity": 200000.0},
-    "Prestressed Concrete": {"Density": 2400.0, "Compressive Strength": 30.0, "Modulus of Elasticity": 30000.0}
-}
+# Bishop Method Calculation with Detailed Steps
+def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices, tolerance=0.001, max_iterations=100):
+    FS = 1.0  # Initial guess for FS
+    slice_width = slope_height / num_slices
+    R = slope_height
+    table_data = []
+    calculation_steps = []
 
-class SheetPileStability:
-    def __init__(self, material, soil_layers, passive_layer, surcharge_load, groundwater_level, required_safety_factor=1.5):
-        self.material = material
-        self.soil_layers = soil_layers
-        self.passive_layer = passive_layer
-        self.surcharge_load = surcharge_load
-        self.groundwater_level = groundwater_level
-        self.required_safety_factor = required_safety_factor
-        self.total_depth = sum(layer['Depth'] for layer in soil_layers)
-
-    def calculate_earth_pressure_coefficient(self, friction_angle, is_passive=False):
-        if is_passive:
-            K = np.tan(np.radians(45 + friction_angle / 2)) ** 2
-        else:
-            K = np.tan(np.radians(45 - friction_angle / 2)) ** 2
-        return K
-
-    def calculate_forces_and_moments(self):
-        active_moment = 0
-        passive_moment = 0
-        y_offset = 0
-
-        for layer in self.soil_layers:
-            Ka = self.calculate_earth_pressure_coefficient(layer['Friction Angle'])
-            gamma = layer['Unit Weight']
-            cohesion = layer['Cohesion']
-            height = layer['Depth']
-            if y_offset + height > self.groundwater_level:
-                gamma -= 9.81
-
-            force = 0.5 * Ka * gamma * height ** 2 + cohesion * height  # Including cohesion in active force calculation
-            moment = force * (y_offset + height / 3)
-            active_moment += moment
-            y_offset += height
-
-        passive_K = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True)
-        passive_force = 0.5 * passive_K * self.passive_layer['Unit Weight'] * self.passive_layer['Depth'] ** 2 + self.passive_layer['Cohesion'] * self.passive_layer['Depth']
-        passive_moment = passive_force * (self.total_depth - self.passive_layer['Depth'] / 3)
-
-        return active_moment, passive_moment
-
-    def stability_analysis(self):
-        active_moment, passive_moment = self.calculate_forces_and_moments()
-        safety_factor = abs(passive_moment / active_moment) if active_moment != 0 else 0
-        stability = "Safe" if safety_factor >= self.required_safety_factor else "Unsafe"
-
-        results_df = pd.DataFrame({
-            'Material': [self.material],
-            'Total Active Moment (kNm)': [active_moment],
-            'Total Passive Moment (kNm)': [passive_moment],
-            'Safety Factor': [round(safety_factor, 2)],
-            'Stability': [stability]
-        })
-
-        return results_df
-
-    def plot_pressure_diagram(self):
-        fig, ax = plt.subplots(figsize=(6, 8))
+    for iteration in range(max_iterations):
+        numerator_sum = 0
+        denominator_sum = 0
+        slice_results = []
         
-        ax.set_ylim(0, self.total_depth)
-        active_base = self.calculate_earth_pressure_coefficient(self.soil_layers[-1]['Friction Angle']) * self.soil_layers[-1]['Unit Weight'] * self.total_depth
-        passive_base = self.calculate_earth_pressure_coefficient(self.passive_layer['Friction Angle'], is_passive=True) * self.passive_layer['Unit Weight'] * self.passive_layer['Depth']
+        for i in range(num_slices):
+            x = (i + 0.5) * slice_width
+            theta = np.arctan(slice_width / R)
+            height_slice = slope_height - x * np.tan(slope_angle)
+            weight = unit_weight * slice_width * height_slice
+            normal_force = weight * np.cos(theta) / (FS + (np.tan(friction_angle) * np.sin(theta) / FS))
+            shear_resistance = cohesion * slice_width + normal_force * np.tan(friction_angle)
+            numerator_sum += shear_resistance
+            denominator_sum += weight * np.sin(theta)
+            slice_results.append({"Slice": i + 1, "Weight (W)": weight, "Normal Force (N)": normal_force, "Shear Resistance (T)": shear_resistance})
+        
+        new_FS = numerator_sum / denominator_sum
+        calculation_steps.append(f"Iteration {iteration + 1}: FS = {new_FS:.4f} (Numerator Sum = {numerator_sum:.4f}, Denominator Sum = {denominator_sum:.4f})")
 
-        ax.fill_betweenx([0, self.total_depth], 0, active_base, color='red', alpha=0.3, label='Active Pressure')
-        ax.fill_betweenx([self.total_depth - self.passive_layer['Depth'], self.total_depth], 0, -passive_base, color='blue', alpha=0.3, label='Passive Pressure')
+        if abs(new_FS - FS) < tolerance:
+            FS = new_FS
+            table_data = slice_results
+            break
+        FS = new_FS
 
-        ax.plot([0, active_base], [0, 0], color='red', linewidth=6, label='Surcharge Load (q)')
-        if self.groundwater_level < self.total_depth:
-            ax.plot([-1.5 * passive_base, 1.5 * active_base], [self.groundwater_level, self.groundwater_level], 'b--', label='Groundwater Level')
+    return FS, pd.DataFrame(table_data), calculation_steps
 
-        ax.set_xlabel("Pressure (kPa)")
-        ax.set_ylabel("Depth (m)")
-        ax.set_title("Active and Passive Earth Pressure Diagram with Surcharge and Groundwater Level")
-
-        plt.gca().invert_yaxis()
-        plt.grid()
-        plt.legend()
-        st.pyplot(fig)
-
-# Streamlit UI for input
-st.title("Sheet Pile Stability Control with AI by Fabian J Manoppo")
-
-# Material selection for the sheet pile
-st.subheader("Select Sheet Pile Material")
-material_type = st.selectbox("Material Type", options=list(material_properties.keys()))
-material = material_properties[material_type]
-st.write("Material Properties:")
-for prop, value in material.items():
-    st.write(f"{prop}: {value}")
-
-# Input for soil properties (active layers)
-soil_layers = []
-num_layers = st.number_input("Enter number of active soil layers", min_value=1, max_value=5, value=2)
-
-for i in range(num_layers):
-    st.write(f"Properties for Active Soil Layer {i + 1}")
-    unit_weight = st.number_input(f"Unit Weight of Layer {i + 1} (kN/m³): ", min_value=1.0)
-    friction_angle = st.number_input(f"Friction Angle of Layer {i + 1} (°): ", min_value=0.0, max_value=45.0)
-    cohesion = st.number_input(f"Cohesion of Layer {i + 1} (kPa): ", min_value=0.0)
-    depth = st.number_input(f"Depth of Layer {i + 1} (m): ", min_value=1.0)
-    soil_layers.append({"Unit Weight": unit_weight, "Friction Angle": friction_angle, "Cohesion": cohesion, "Depth": depth})
-
-# Passive soil layer properties with custom input
-st.subheader("Passive Soil Layer Properties")
-passive_unit_weight = st.number_input("Unit Weight of Passive Soil (kN/m³): ", min_value=1.0)
-passive_friction_angle = st.number_input("Friction Angle of Passive Soil (°): ", min_value=0.0, max_value=45.0)
-passive_cohesion = st.number_input("Cohesion of Passive Soil (kPa): ", min_value=0.0)
-passive_depth = st.number_input("Depth of Passive Soil (m): ", min_value=1.0)
-passive_layer = {"Unit Weight": passive_unit_weight, "Friction Angle": passive_friction_angle, "Cohesion": passive_cohesion, "Depth": passive_depth}
-
-# Additional parameters
-surcharge_load = st.number_input("Surcharge Load (kN/m²): ", min_value=0.0)
-groundwater_level = st.number_input("Groundwater Level Depth from Top (m): ", min_value=0.0)
-
-# Initialize and calculate stability
-design = SheetPileStability(material_type, soil_layers, passive_layer, surcharge_load, groundwater_level)
-
-if st.button("Check Stability"):
-    stability_results = design.stability_analysis()
-    st.subheader("Stability Analysis Results")
-    st.dataframe(stability_results)
+# Fellenius (Swedish Circle) Method
+def calculate_fs_fellenius(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices):
+    slice_width = slope_height / num_slices
+    R = slope_height
+    numerator_sum = 0
+    denominator_sum = 0
+    calculation_steps = []
     
-    st.subheader("Pressure Diagram")
-    design.plot_pressure_diagram()
+    for i in range(num_slices):
+        x = (i + 0.5) * slice_width
+        theta = np.arctan(slice_width / R)
+        height_slice = slope_height - x * np.tan(slope_angle)
+        weight = unit_weight * slice_width * height_slice
+        normal_force = weight * np.cos(theta)
+        shear_resistance = cohesion * slice_width + normal_force * np.tan(friction_angle)
+        numerator_sum += shear_resistance
+        denominator_sum += weight * np.sin(theta)
+        calculation_steps.append(f"Slice {i+1}: Weight = {weight:.2f}, Shear Resistance = {shear_resistance:.2f}, Normal Force = {normal_force:.2f}")
+    
+    FS = numerator_sum / denominator_sum
+    calculation_steps.append(f"Final FS = {FS:.4f} (Numerator Sum = {numerator_sum:.4f}, Denominator Sum = {denominator_sum:.4f})")
+    return FS, calculation_steps
+
+# Janbu Method (Simplified)
+def calculate_fs_janbu(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices):
+    slice_width = slope_height / num_slices
+    R = slope_height
+    numerator_sum = 0
+    denominator_sum = 0
+    calculation_steps = []
+    
+    for i in range(num_slices):
+        x = (i + 0.5) * slice_width
+        theta = np.arctan(slice_width / R)
+        height_slice = slope_height - x * np.tan(slope_angle)
+        weight = unit_weight * slice_width * height_slice
+        normal_force = weight * np.cos(theta) / np.cos(theta)
+        shear_resistance = cohesion * slice_width + normal_force * np.tan(friction_angle)
+        numerator_sum += shear_resistance
+        denominator_sum += weight * np.sin(theta)
+        calculation_steps.append(f"Slice {i+1}: Weight = {weight:.2f}, Shear Resistance = {shear_resistance:.2f}, Normal Force = {normal_force:.2f}")
+    
+    FS = numerator_sum / denominator_sum
+    calculation_steps.append(f"Final FS = {FS:.4f} (Numerator Sum = {numerator_sum:.4f}, Denominator Sum = {denominator_sum:.4f})")
+    return FS, calculation_steps
+
+# Morgenstern-Price Method (Placeholder example)
+def calculate_fs_morgenstern_price(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices):
+    FS = (cohesion * slope_height) / (unit_weight * slope_height * np.tan(friction_angle))
+    calculation_steps = [
+        f"Assumed FS Calculation: FS = (Cohesion * Slope Height) / (Unit Weight * Slope Height * tan(Friction Angle))",
+        f"FS = {FS:.4f}"
+    ]
+    return FS, calculation_steps
+
+# Function to get method descriptions
+def get_method_description(method):
+    descriptions = {
+        "Bishop": "The Bishop Method is an iterative, circular failure analysis method that approximates interslice forces, making it suitable for analyzing non-homogeneous slopes.",
+        "Fellenius": "The Fellenius (Swedish Circle) Method is a simple circular method assuming no interslice forces, typically conservative and useful for homogeneous slopes.",
+        "Janbu": "The Janbu Method is a slice-based, simplified method for non-circular failure surfaces, often used for slopes with complex geometries.",
+        "Morgenstern-Price": "The Morgenstern-Price Method is a rigorous method that considers interslice forces, suitable for complex, non-circular failure surfaces."
+    }
+    return descriptions.get(method, "No description available.")
+
+# Streamlit application
+st.title("Slope Stability Analysis with Multiple Methods")
+
+# Input parameters
+slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
+slope_angle = np.radians(st.number_input("Slope Angle (degrees)", min_value=1.0, max_value=90.0, value=30.0))
+cohesion = st.number_input("Cohesion (ton/m²)", min_value=0.0, value=3.2)
+unit_weight = st.number_input("Unit Weight (ton/m³)", min_value=0.0, value=1.8)
+friction_angle = np.radians(st.number_input("Friction Angle (degrees)", min_value=0.0, max_value=45.0, value=20.0))
+num_slices = st.number_input("Number of Slices", min_value=1, max_value=50, value=10)
+
+# Select Method
+method = st.selectbox("Select Method", ["Bishop", "Fellenius", "Janbu", "Morgenstern-Price"])
+
+# Calculate Button
+if st.button("Calculate"):
+    # Display method description
+    description = get_method_description(method)
+    st.write(f"### {method} Method")
+    st.write(description)
+    
+    if method == "Bishop":
+        fs_bishop, calculation_table, calculation_steps = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_bishop:.3f}")
+        st.write("Detailed Calculation Table for Bishop Method (Slice by Slice)")
+        st.dataframe(calculation_table)
+        st.write("### Calculation Steps")
+        st.write("\n".join(calculation_steps))
+
+    elif method == "Fellenius":
+        fs_fellenius, calculation_steps = calculate_fs_fellenius(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_fellenius:.3f}")
+        st.write("### Calculation Steps")
+        st.write("\n".join(calculation_steps))
+
+    elif method == "Janbu":
+        fs_janbu, calculation_steps = calculate_fs_janbu(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_janbu:.3f}")
+        st.write("### Calculation Steps")
+        st.write("\n".join(calculation_steps))
+
+    elif method == "Morgenstern-Price":
+        fs_morgenstern_price, calculation_steps = calculate_fs_morgenstern_price(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        st.write(f"Factor of Safety (FS) using {method} Method: {fs_morgenstern_price:.3f}")
+        st.write("### Calculation Steps")
+        st.write("\n".join(calculation_steps))
