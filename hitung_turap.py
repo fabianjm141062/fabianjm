@@ -10,7 +10,7 @@ material_properties = {
 }
 
 class SheetPileStability:
-    def _init_(self, material, soil_layers, passive_layer, surcharge_load, groundwater_level, required_safety_factor=1.5):
+    def __init__(self, material, soil_layers, passive_layer, surcharge_load, groundwater_level, required_safety_factor=1.5):
         self.material = material
         self.soil_layers = soil_layers
         self.passive_layer = passive_layer
@@ -75,7 +75,10 @@ class SheetPileStability:
         ax.fill_betweenx([0, self.total_depth], 0, active_base, color='red', alpha=0.3, label='Active Pressure')
         ax.fill_betweenx([self.total_depth - self.passive_layer['Depth'], self.total_depth], 0, -passive_base, color='blue', alpha=0.3, label='Passive Pressure')
 
+        # Draw Surcharge Load Line in Red with Thickness 6
         ax.plot([0, active_base], [0, 0], color='red', linewidth=6, label='Surcharge Load (q)')
+
+        # Groundwater level as a dashed blue line
         if self.groundwater_level < self.total_depth:
             ax.plot([-1.5 * passive_base, 1.5 * active_base], [self.groundwater_level, self.groundwater_level], 'b--', label='Groundwater Level')
 
@@ -89,7 +92,7 @@ class SheetPileStability:
         st.pyplot(fig)
 
 # Streamlit UI for input
-st.title("Sheet Pile Stability Control with AI by Fabian J Manoppo")
+st.title("Sheet Pile Stability Control")
 
 # Material selection for the sheet pile
 st.subheader("Select Sheet Pile Material")
