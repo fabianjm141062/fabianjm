@@ -1,4 +1,4 @@
-import streamlit as st
+  import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -78,18 +78,32 @@ def calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, 
     calculation_steps.append(f"Resulting FS: {FS:.4f}")
     return FS, calculation_steps
 
-# Function to get method descriptions
-def get_method_description(method):
-    descriptions = {
-        "Bishop": "The Bishop Method is an iterative, circular failure analysis method that approximates interslice forces, making it suitable for analyzing non-homogeneous slopes.",
-        "Fellenius": "The Fellenius (Swedish Circle) Method is a simple circular method assuming no interslice forces, typically conservative and useful for homogeneous slopes.",
-        "Janbu": "The Janbu Method is a slice-based, simplified method for non-circular failure surfaces, often used for slopes with complex geometries.",
-        "Morgenstern-Price": "The Morgenstern-Price Method is a rigorous method that considers interslice forces, suitable for complex, non-circular failure surfaces.",
-        "Taylor": "The Taylor's Method uses a stability number for homogeneous slopes, which is ideal for simple slopes with circular failure surfaces.",
-        "Culmann": "Culmann's Method analyzes planar failure surfaces, commonly used for simple slopes where a planar failure is expected.",
-        "Hoek-Brown": "The Hoek-Brown criterion is used specifically for rock slopes, applying empirical parameters based on rock mass strength."
-    }
-    return descriptions.get(method, "No description available.")
+# Plot function for visualizing slope and failure surface for each method
+def plot_slope(slope_height, slope_angle, FS, method_name):
+    slope_width = slope_height / np.tan(slope_angle)
+    x_slope = [0, slope_width]
+    y_slope = [0, slope_height]
+
+    # Set parameters for different methods' failure surfaces
+    R = slope_height if method_name in ["Bishop", "Taylor"] else slope_height * 1.2
+    center_x = slope_width / 2
+    center_y = slope_height - R
+
+    # Generate failure surface arc
+    theta = np.linspace(0, np.pi, 100)
+    x_circle = center_x + R * np.cos(theta)
+    y_circle = center_y + R * np.sin(theta)
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(x_slope, y_slope, color='black', linewidth=2, label='Slope Surface')
+    plt.plot(x_circle, y_circle, color='red', linestyle='--', label=f'{method_name} Failure Surface')
+
+    plt.title(f"Slope Stability Analysis ({method_name} Method) - FS: {FS:.3f}")
+    plt.xlabel("Width (m)")
+    plt.ylabel("Height (m)")
+    plt.legend()
+    plt.grid()
+    st.pyplot(plt)
 
 # Streamlit application
 st.title("Slope Stability Analysis with Multiple Methods by Fabian J Manoppo Prompt with AI Tools")
@@ -106,7 +120,7 @@ mi = st.number_input("Hoek-Brown Material Constant (mi)", min_value=0.0, value=1
 disturbance_factor = st.number_input("Hoek-Brown Disturbance Factor (D)", min_value=0.0, max_value=1.0, value=0.5)
 
 # Select Method
-method = st.selectbox("Select Method", ["Bishop", "Fellenius", "Janbu", "Morgenstern-Price", "Taylor", "Culmann", "Hoek-Brown"])
+method = st.selectbox("Select Method", ["Bishop", "Taylor", "Culmann", "Hoek-Brown"])
 
 # Calculate Button
 if st.button("Calculate"):
@@ -122,21 +136,20 @@ if st.button("Calculate"):
         st.dataframe(calculation_table)
         st.write("### Calculation Steps")
         st.write("\n".join(calculation_steps))
+        plot_slope(slope_height, slope_angle, fs_bishop, method_name="Bishop")
 
     elif method == "Taylor":
         fs_taylor, calculation_steps = calculate_fs_taylor(cohesion, unit_weight, friction_angle, slope_height)
         st.write(f"Factor of Safety (FS) using {method} Method: {fs_taylor:.3f}")
         st.write("### Calculation Steps")
         st.write("\n".join(calculation_steps))
+        plot_slope(slope_height, slope_angle, fs_taylor, method_name="Taylor")
 
     elif method == "Culmann":
         fs_culmann, calculation_steps = calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
         st.write(f"Factor of Safety (FS) using {method} Method: {fs_culmann:.3f}")
         st.write("### Calculation Steps")
         st.write("\n".join(calculation_steps))
+        plot_slope(slope_height, slope_angle, fs_culmann, method_name="Culmann")
 
-    elif method == "Hoek-Brown":
-        fs_hoek_brown, calculation_steps = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height)
-        st.write(f"Factor of Safety (FS) using {method} Method: {fs_hoek_brown:.3f}")
-        st.write("### Calculation Steps")
-        st.write("\n".join(calculation_steps))
+    elif method == "Hoek-Brown
