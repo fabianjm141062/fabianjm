@@ -158,7 +158,7 @@ if st.button("Calculate"):
 
     elif method == "Morgenstern-Price":
         fs_morgenstern_price, calculation_steps = calculate_fs_morgenstern_price(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
-             st.write(f"Factor of Safety (FS): {fs_morgenstern_price:.3f}")
+        st.write(f"Factor of Safety (FS): {fs_morgenstern_price:.3f}")
         st.write("### Calculation Steps")
         st.write("\n".join(calculation_steps))
 
