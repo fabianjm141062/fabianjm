@@ -38,6 +38,15 @@ def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slo
 
     return FS, pd.DataFrame(table_data), calculation_steps
 
+# Placeholder for generic slice-based methods (e.g., Janbu, Fellenius, Spencer)
+def calculate_fs_generic(cohesion, unit_weight, friction_angle, slope_height, num_slices):
+    FS = cohesion / (unit_weight * slope_height * np.tan(friction_angle))
+    calculation_steps = [
+        f"FS Calculation: FS = Cohesion / (Unit Weight * Slope Height * tan(Friction Angle))",
+        f"FS = {FS:.4f}"
+    ]
+    return FS, calculation_steps
+
 # Hoek-Brown function
 def calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height):
     GSI = 60  # Geologic Strength Index (example value)
@@ -55,22 +64,13 @@ def calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, 
     calculation_steps.append(f"Resulting FS: {FS:.4f}")
     return FS, calculation_steps
 
-# Placeholder function for other methods
-def calculate_fs_generic(cohesion, unit_weight, friction_angle, slope_height):
-    FS = cohesion / (unit_weight * slope_height * np.tan(friction_angle))
-    calculation_steps = [
-        f"FS Calculation: FS = Cohesion / (Unit Weight * Slope Height * tan(Friction Angle))",
-        f"FS = {FS:.4f}"
-    ]
-    return FS, calculation_steps
-
-# Plotting function for all methods
+# Plotting function
 def plot_slope(method_name, FS, slope_height, slope_angle):
     slope_width = slope_height / np.tan(slope_angle)
     x_slope = [0, slope_width]
     y_slope = [0, slope_height]
 
-    # Set parameters for failure surface based on method
+    # Define failure surface parameters for each method
     R = slope_height if method_name in ["Bishop", "Taylor"] else slope_height * 1.2
     center_x = slope_width / 2
     center_y = slope_height - R
@@ -80,7 +80,7 @@ def plot_slope(method_name, FS, slope_height, slope_angle):
     x_circle = center_x + R * np.cos(theta)
     y_circle = center_y + R * np.sin(theta)
 
-    # Plot setup
+    # Create plot
     plt.figure(figsize=(8, 6))
     plt.plot(x_slope, y_slope, color='black', linewidth=2, label='Slope Surface')
     plt.plot(x_circle, y_circle, color='red', linestyle='--', label=f'{method_name} Failure Surface')
@@ -98,12 +98,18 @@ st.title("Slope Stability Analysis with Multiple Methods by Fabian J Manoppo wit
 method = st.selectbox("Select Method", ["Bishop", "Janbu", "Fellenius", "Spencer", "Morgenstern-Price", "Taylor", "Culmann", "Hoek-Brown"])
 
 # Step 2: Input Parameters Based on Selected Method
-if method in ["Bishop", "Janbu", "Fellenius", "Spencer", "Morgenstern-Price", "Culmann", "Taylor"]:
+if method in ["Bishop", "Janbu", "Fellenius", "Spencer", "Morgenstern-Price"]:
     slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
     slope_angle = np.radians(st.number_input("Slope Angle (degrees)", min_value=1.0, max_value=90.0, value=30.0))
     cohesion = st.number_input("Cohesion (ton/m²)", min_value=0.0, value=3.2)
     unit_weight = st.number_input("Unit Weight (ton/m³)", min_value=0.0, value=1.8)
     friction_angle = np.radians(st.number_input("Friction Angle (degrees)", min_value=0.0, max_value=45.0, value=20.0))
+    num_slices = st.number_input("Number of Slices", min_value=1, max_value=50, value=10)
+
+elif method == "Taylor":
+    cohesion = st.number_input("Cohesion (ton/m²)", min_value=0.0, value=3.2)
+    unit_weight = st.number_input("Unit Weight (ton/m³)", min_value=0.0, value=1.8)
+    slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
 
 elif method == "Hoek-Brown":
     rock_strength = st.number_input("Rock Mass Strength (MPa)", min_value=0.0, value=10.0)
@@ -115,9 +121,9 @@ elif method == "Hoek-Brown":
 # Step 3: Calculate Button
 if st.button("Calculate"):
     st.write(f"### {method} Method")
-    
+
     if method == "Bishop":
-        fs_bishop, calculation_table, calculation_steps = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, 10)
+        fs_bishop, calculation_table, calculation_steps = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
         st.write(f"Factor of Safety (FS): {fs_bishop:.3f}")
         st.dataframe(calculation_table)
         st.write("### Calculation Steps")
@@ -132,24 +138,25 @@ if st.button("Calculate"):
         plot_slope("Hoek-Brown", fs_hoek_brown, slope_height, np.radians(45))  # Default angle for plot
 
     else:
-        fs_generic, calculation_steps = calculate_fs_generic(cohesion, unit_weight, friction_angle, slope_height)
+        fs_generic, calculation_steps = calculate_fs_generic(cohesion, unit_weight, friction_angle, slope_height, num_slices)
         st.write(f"Factor of Safety (FS): {fs_generic:.3f}")
         st.write("### Calculation Steps")
         st.write("\n".join(calculation_steps))
         plot_slope(method, fs_generic, slope_height, slope_angle)
 
-# Descriptions
+# Method Descriptions and Computation Explanation
 method_descriptions = {
-    "Bishop": "The Bishop Method is an iterative method suitable for circular failure surfaces, ideal for non-homogeneous slopes.",
-    "Janbu": "The Janbu Method simplifies stability calculations for complex geometries with plane failure surfaces.",
-    "Fellenius": "The Fellenius Method (Swedish Circle) is a simple circular failure approach for homogeneous slopes.",
-    "Spencer": "The Spencer Method ensures slope stability by balancing both force and moment equilibrium.",
-    "Morgenstern-Price": "The Morgenstern-Price Method is robust and accounts for interslice forces, ideal for complex non-circular failures.",
-    "Taylor": "Taylor's Method uses stability charts for homogeneous slopes, particularly effective for quick stability checks of circular failures.",
-    "Culmann": "The Culmann Method assumes a simple planar failure surface, commonly applied in rock slopes where planar failure is likely.",
-    "Hoek-Brown": "The Hoek-Brown criterion is tailored for rock slopes, providing an empirical stability estimation based on rock mass strength."
+    "Bishop": "The Bishop Method is an iterative, slice-based method for circular failure surfaces. It considers vertical interslice forces and calculates FS by dividing total resisting moments by driving moments.",
+    "Janbu": "The Janbu Method simplifies stability calculations by considering vertical and horizontal forces for non-circular failure surfaces. It iteratively balances forces for an FS.",
+    "Fellenius": "The Fellenius Method (Swedish Circle) is a slice-based circular failure analysis that ignores interslice forces, providing a conservative FS by dividing the total resisting forces by the driving forces.",
+    "Spencer": "The Spencer Method is a rigorous approach that balances both force and moment equilibrium. It iteratively adjusts FS to meet both conditions, ideal for slopes with complex interslice forces.",
+    "Morgenstern-Price": "The Morgenstern-Price Method is a comprehensive method that satisfies both force and moment equilibrium, offering flexible assumptions for interslice forces. It's useful for complex failure surfaces.",
+    "Taylor": "Taylor's Method uses empirical stability charts for circular failure surfaces in homogeneous slopes. It calculates FS based on a stability number derived from the charts.",
+    "Culmann": "The Culmann Method assumes a planar failure surface, commonly used for rock slopes where planar failures are expected. FS is calculated by analyzing the forces along the planar surface.",
+    "Hoek-Brown": "The Hoek-Brown criterion is tailored for rock slopes and calculates FS based on empirical rock mass strength parameters. This method is ideal for slopes in rock masses with defined properties."
 }
 
-st.write("### Method Descriptions")
+# Display the selected method's description and computation explanation
+st.write("### Method Description and Computation Explanation")
 st.write(method_descriptions.get(method, "No description available for this method."))
 
