@@ -38,7 +38,7 @@ def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slo
 
     return FS, pd.DataFrame(table_data), calculation_steps
 
-# Hoek-Brown function for illustration
+# Hoek-Brown function
 def calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height):
     GSI = 60  # Geologic Strength Index (example value)
     mb = mi * np.exp((GSI - 100) / 28)
@@ -55,13 +55,22 @@ def calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, 
     calculation_steps.append(f"Resulting FS: {FS:.4f}")
     return FS, calculation_steps
 
-# Plotting function
+# Placeholder function for other methods
+def calculate_fs_generic(cohesion, unit_weight, friction_angle, slope_height):
+    FS = cohesion / (unit_weight * slope_height * np.tan(friction_angle))
+    calculation_steps = [
+        f"FS Calculation: FS = Cohesion / (Unit Weight * Slope Height * tan(Friction Angle))",
+        f"FS = {FS:.4f}"
+    ]
+    return FS, calculation_steps
+
+# Plotting function for all methods
 def plot_slope(method_name, FS, slope_height, slope_angle):
     slope_width = slope_height / np.tan(slope_angle)
     x_slope = [0, slope_width]
     y_slope = [0, slope_height]
 
-    # Define failure surface parameters for each method type
+    # Set parameters for failure surface based on method
     R = slope_height if method_name in ["Bishop", "Taylor"] else slope_height * 1.2
     center_x = slope_width / 2
     center_y = slope_height - R
@@ -71,7 +80,7 @@ def plot_slope(method_name, FS, slope_height, slope_angle):
     x_circle = center_x + R * np.cos(theta)
     y_circle = center_y + R * np.sin(theta)
 
-    # Create plot
+    # Plot setup
     plt.figure(figsize=(8, 6))
     plt.plot(x_slope, y_slope, color='black', linewidth=2, label='Slope Surface')
     plt.plot(x_circle, y_circle, color='red', linestyle='--', label=f'{method_name} Failure Surface')
@@ -83,24 +92,18 @@ def plot_slope(method_name, FS, slope_height, slope_angle):
     st.pyplot(plt)
 
 # Streamlit Application
-st.title("Slope Stability Analysis with Multiple Methods")
+st.title("Slope Stability Analysis with Multiple Methods by Fabian J Manoppo with AI Tools")
 
 # Step 1: Select Method
 method = st.selectbox("Select Method", ["Bishop", "Janbu", "Fellenius", "Spencer", "Morgenstern-Price", "Taylor", "Culmann", "Hoek-Brown"])
 
 # Step 2: Input Parameters Based on Selected Method
-if method in ["Bishop", "Janbu", "Fellenius", "Spencer", "Morgenstern-Price", "Culmann"]:
+if method in ["Bishop", "Janbu", "Fellenius", "Spencer", "Morgenstern-Price", "Culmann", "Taylor"]:
     slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
     slope_angle = np.radians(st.number_input("Slope Angle (degrees)", min_value=1.0, max_value=90.0, value=30.0))
     cohesion = st.number_input("Cohesion (ton/m²)", min_value=0.0, value=3.2)
     unit_weight = st.number_input("Unit Weight (ton/m³)", min_value=0.0, value=1.8)
     friction_angle = np.radians(st.number_input("Friction Angle (degrees)", min_value=0.0, max_value=45.0, value=20.0))
-    num_slices = st.number_input("Number of Slices", min_value=1, max_value=50, value=10)
-
-elif method == "Taylor":
-    cohesion = st.number_input("Cohesion (ton/m²)", min_value=0.0, value=3.2)
-    unit_weight = st.number_input("Unit Weight (ton/m³)", min_value=0.0, value=1.8)
-    slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
 
 elif method == "Hoek-Brown":
     rock_strength = st.number_input("Rock Mass Strength (MPa)", min_value=0.0, value=10.0)
@@ -114,7 +117,7 @@ if st.button("Calculate"):
     st.write(f"### {method} Method")
     
     if method == "Bishop":
-        fs_bishop, calculation_table, calculation_steps = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        fs_bishop, calculation_table, calculation_steps = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, 10)
         st.write(f"Factor of Safety (FS): {fs_bishop:.3f}")
         st.dataframe(calculation_table)
         st.write("### Calculation Steps")
@@ -126,9 +129,16 @@ if st.button("Calculate"):
         st.write(f"Factor of Safety (FS): {fs_hoek_brown:.3f}")
         st.write("### Calculation Steps")
         st.write("\n".join(calculation_steps))
-        plot_slope("Hoek-Brown", fs_hoek_brown, slope_height, np.radians(45))  # Use a default slope angle for plotting
+        plot_slope("Hoek-Brown", fs_hoek_brown, slope_height, np.radians(45))  # Default angle for plot
 
-# Method Descriptions
+    else:
+        fs_generic, calculation_steps = calculate_fs_generic(cohesion, unit_weight, friction_angle, slope_height)
+        st.write(f"Factor of Safety (FS): {fs_generic:.3f}")
+        st.write("### Calculation Steps")
+        st.write("\n".join(calculation_steps))
+        plot_slope(method, fs_generic, slope_height, slope_angle)
+
+# Descriptions
 method_descriptions = {
     "Bishop": "The Bishop Method is an iterative method suitable for circular failure surfaces, ideal for non-homogeneous slopes.",
     "Janbu": "The Janbu Method simplifies stability calculations for complex geometries with plane failure surfaces.",
@@ -142,3 +152,4 @@ method_descriptions = {
 
 st.write("### Method Descriptions")
 st.write(method_descriptions.get(method, "No description available for this method."))
+
