@@ -159,7 +159,7 @@ if st.button("Calculate"):
         x_circle = center_x + R * np.cos(theta)
         y_circle = center_y + R * np.sin(theta)
 
-                plt.figure(figsize=(8, 6))
+        plt.figure(figsize=(8, 6))
         plt.plot(x_slope, y_slope, color='black', linewidth=2, label='Slope Surface')
         plt.plot(x_circle, y_circle, color='red', linestyle='--', label=f'{method_name} Failure Surface')
         plt.title(f"Slope Stability Analysis ({method_name} Method) - FS: {FS:.3f}")
