@@ -106,7 +106,7 @@ def plot_slope(slope_height, slope_angle, FS, method_name):
     st.pyplot(plt)
 
 # Streamlit application
-st.title("Slope Stability Analysis with Multiple Methods by Fabian J Manoppo Prompt with AI Tools")
+st.title("Slope Stability Analysis with Multiple Methods")
 
 # Input parameters
 slope_height = st.number_input("Slope Height (m)", min_value=1.0, value=10.0)
@@ -152,4 +152,5 @@ if st.button("Calculate"):
         st.write("\n".join(calculation_steps))
         plot_slope(slope_height, slope_angle, fs_culmann, method_name="Culmann")
 
-    elif method == "Hoek-Brown
+    elif method == "Hoek-Brown":
+        fs_hoek_brown, calculation_steps = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor,
