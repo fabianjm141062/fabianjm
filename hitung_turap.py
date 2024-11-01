@@ -92,7 +92,7 @@ class SheetPileStability:
         st.pyplot(fig)
 
 # Streamlit UI for input
-st.title("Sheet Pile Stability Control")
+st.title("Sheet Pile Stability Control by Fabian J Manoppo, Prompt with AI")
 
 # Material selection for the sheet pile
 st.subheader("Select Sheet Pile Material")
