@@ -3,19 +3,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Calculation functions for each method
+# Bishop Method Calculation
 def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices, tolerance=0.001, max_iterations=100):
     FS = 1.0
     slice_width = slope_height / num_slices
     R = slope_height
-    table_data = []
     calculation_steps = []
 
     for iteration in range(max_iterations):
         numerator_sum = 0
         denominator_sum = 0
-        slice_results = []
-        
         for i in range(num_slices):
             x = (i + 0.5) * slice_width
             theta = np.arctan(slice_width / R)
@@ -25,25 +22,22 @@ def calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slo
             shear_resistance = cohesion * slice_width + normal_force * np.tan(friction_angle)
             numerator_sum += shear_resistance
             denominator_sum += weight * np.sin(theta)
-            slice_results.append({"Slice": i + 1, "Weight (W)": weight, "Normal Force (N)": normal_force, "Shear Resistance (T)": shear_resistance})
-        
         new_FS = numerator_sum / denominator_sum
-        calculation_steps.append(f"Iteration {iteration + 1}: FS = {new_FS:.4f} (Numerator Sum = {numerator_sum:.4f}, Denominator Sum = {denominator_sum:.4f})")
-
+        calculation_steps.append([iteration + 1, new_FS, numerator_sum, denominator_sum])
         if abs(new_FS - FS) < tolerance:
             FS = new_FS
-            table_data = slice_results
             break
         FS = new_FS
 
-    return FS, pd.DataFrame(table_data), calculation_steps
+    steps_df = pd.DataFrame(calculation_steps, columns=["Iteration", "FS", "Numerator Sum", "Denominator Sum"])
+    return FS, steps_df
 
 # Janbu Method Calculation
 def calculate_fs_janbu(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices):
     slice_width = slope_height / num_slices
+    calculation_steps = []
     numerator_sum = 0
     denominator_sum = 0
-    calculation_steps = []
 
     for i in range(num_slices):
         x = (i + 0.5) * slice_width
@@ -53,17 +47,18 @@ def calculate_fs_janbu(cohesion, unit_weight, friction_angle, slope_height, slop
         shear_resistance = cohesion * slice_width + normal_force * np.tan(friction_angle)
         numerator_sum += shear_resistance
         denominator_sum += weight * np.sin(slope_angle)
-        calculation_steps.append(f"Slice {i+1}: Weight = {weight:.2f}, Shear Resistance = {shear_resistance:.2f}, Normal Force = {normal_force:.2f}")
+        calculation_steps.append([i + 1, weight, normal_force, shear_resistance])
     
     FS = numerator_sum / denominator_sum
-    return FS, calculation_steps
+    steps_df = pd.DataFrame(calculation_steps, columns=["Slice", "Weight", "Normal Force", "Shear Resistance"])
+    return FS, steps_df
 
 # Fellenius Method Calculation
 def calculate_fs_fellenius(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices):
     slice_width = slope_height / num_slices
+    calculation_steps = []
     numerator_sum = 0
     denominator_sum = 0
-    calculation_steps = []
 
     for i in range(num_slices):
         x = (i + 0.5) * slice_width
@@ -74,31 +69,47 @@ def calculate_fs_fellenius(cohesion, unit_weight, friction_angle, slope_height, 
         shear_resistance = cohesion * slice_width + normal_force * np.tan(friction_angle)
         numerator_sum += shear_resistance
         denominator_sum += weight * np.sin(theta)
-        calculation_steps.append(f"Slice {i+1}: Weight = {weight:.2f}, Shear Resistance = {shear_resistance:.2f}, Normal Force = {normal_force:.2f}")
+        calculation_steps.append([i + 1, weight, normal_force, shear_resistance])
 
     FS = numerator_sum / denominator_sum
-    return FS, calculation_steps
+    steps_df = pd.DataFrame(calculation_steps, columns=["Slice", "Weight", "Normal Force", "Shear Resistance"])
+    return FS, steps_df
 
 # Spencer Method Calculation
 def calculate_fs_spencer(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices):
     FS = (cohesion * slope_height) / (unit_weight * slope_height * np.tan(friction_angle))
-    calculation_steps = [
-        f"FS Calculation: FS = (Cohesion * Slope Height) / (Unit Weight * Slope Height * tan(Friction Angle))",
-        f"FS = {FS:.4f}"
-    ]
-    return FS, calculation_steps
+    steps_df = pd.DataFrame([[1, FS]], columns=["Step", "FS"])
+    return FS, steps_df
 
 # Morgenstern-Price Method Calculation
-def calculate_fs_morgenstern_price(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices):
+def calculate_fs_morgenstern_price(cohesion, unit_weight, friction_angle, slope_height, slope_angle):
     FS = cohesion / (unit_weight * slope_height * np.tan(friction_angle))
-    calculation_steps = [
-        f"FS = Cohesion / (Unit Weight * Slope Height * tan(Friction Angle))",
-        f"FS = {FS:.4f}"
-    ]
-    return FS, calculation_steps
+    steps_df = pd.DataFrame([[1, FS]], columns=["Step", "FS"])
+    return FS, steps_df
 
-# Taylor, Culmann, and Hoek-Brown functions (as previously defined)
-# (Taylor, Culmann, and Hoek-Brown functions are not repeated here for brevity)
+# Taylor's Method Calculation
+def calculate_fs_taylor(cohesion, unit_weight, slope_height):
+    N = 0.261  # Example stability number
+    FS = cohesion / (unit_weight * slope_height * N)
+    steps_df = pd.DataFrame([[1, N, FS]], columns=["Step", "Stability Number (N)", "FS"])
+    return FS, steps_df
+
+# Culmann's Method Calculation
+def calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle):
+    critical_angle = np.degrees(slope_angle) - np.degrees(friction_angle) / 2
+    FS = cohesion / (unit_weight * slope_height * np.sin(np.radians(critical_angle)) * np.cos(np.radians(critical_angle)))
+    steps_df = pd.DataFrame([[1, critical_angle, FS]], columns=["Step", "Critical Angle", "FS"])
+    return FS, steps_df
+
+# Hoek-Brown Method Calculation
+def calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height):
+    GSI = 60  # Example Geologic Strength Index (GSI) value
+    mb = mi * np.exp((GSI - 100) / 28)
+    s = np.exp((GSI - 100) / 9)
+    a = 0.5
+    FS = rock_strength / (unit_weight * slope_height * (mb * disturbance_factor * s) ** a)
+    steps_df = pd.DataFrame([[1, GSI, mb, s, FS]], columns=["Step", "GSI", "mb", "s", "FS"])
+    return FS, steps_df
 
 # Streamlit Application
 st.title("Slope Stability Analysis with Multiple Methods")
@@ -123,28 +134,31 @@ if method == "Hoek-Brown":
 if st.button("Calculate"):
     st.write(f"### {method} Method")
 
+    # Perform calculation based on selected method
     if method == "Bishop":
-        fs, table, steps = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        fs, steps_df = calculate_fs_bishop(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
     elif method == "Janbu":
-        fs, steps = calculate_fs_janbu(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        fs, steps_df = calculate_fs_janbu(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
     elif method == "Fellenius":
-        fs, steps = calculate_fs_fellenius(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        fs, steps_df = calculate_fs_fellenius(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
     elif method == "Spencer":
-        fs, steps = calculate_fs_spencer(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        fs, steps_df = calculate_fs_spencer(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
     elif method == "Morgenstern-Price":
-        fs, steps = calculate_fs_morgenstern_price(cohesion, unit_weight, friction_angle, slope_height, slope_angle, num_slices)
+        fs, steps_df = calculate_fs_morgenstern_price(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
     elif method == "Taylor":
-        fs, steps = calculate_fs_taylor(cohesion, unit_weight, slope_height)
+        fs, steps_df = calculate_fs_taylor(cohesion, unit_weight, slope_height)
     elif method == "Culmann":
-        fs, steps = calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
+        fs, steps_df = calculate_fs_culmann(cohesion, unit_weight, friction_angle, slope_height, slope_angle)
     elif method == "Hoek-Brown":
-        fs, steps = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height)
+        fs, steps_df = calculate_fs_hoek_brown(rock_strength, mi, disturbance_factor, unit_weight, slope_height)
 
-    # Display results
+    # Display Factor of Safety
     st.write(f"Factor of Safety (FS): {fs:.3f}")
-    st.write("### Calculation Steps")
-    st.write("\n".join(steps))
-    
+
+    # Display Computation Steps in a Table
+    st.write("### Detailed Computation Steps")
+    st.dataframe(steps_df)
+
     # Plotting function for slope and failure surface
     def plot_slope(method_name, FS, slope_height, slope_angle):
         slope_width = slope_height / np.tan(slope_angle)
@@ -169,10 +183,10 @@ if st.button("Calculate"):
         plt.grid()
         st.pyplot(plt)
 
-    # Call the plotting function for the selected method
+    # Display the plot for the selected method
     plot_slope(method, fs, slope_height, slope_angle)
 
-# Descriptions of Methods
+# Descriptions of each method
 method_descriptions = {
     "Bishop": "Iterative, slice-based; circular failure. Vertical interslice forces. Suitable for circular failures in non-homogeneous soil.",
     "Janbu": "Non-circular surfaces, balances vertical/horizontal forces. Suitable for complex geometries.",
@@ -184,7 +198,9 @@ method_descriptions = {
     "Hoek-Brown": "Empirical for rock masses, based on geologic strength. Suitable for rock slopes with significant rock masses."
 }
 
-# Display selected method's description and computation explanation
+# Display the selected method's description
 st.write("### Method Description and Use Case")
 st.write(method_descriptions.get(method, "No description available for this method."))
+
+
 
