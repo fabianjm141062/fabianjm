@@ -46,11 +46,11 @@ if st.button("Predict"):
     # Display the predicted results with units
     predicted_qa, predicted_sa, predicted_qh, predicted_yh, predicted_bm = predicted_values[0]
     st.write("Predicted values based on your inputs (with units):")
-    st.write(f"Predicted qa (kN): {predicted_qa:.2f}")
+    st.write(f"Predicted qa (Ton): {predicted_qa:.2f}")
     st.write(f"Predicted sa (mm): {predicted_sa:.2f}")
-    st.write(f"Predicted qh (kN): {predicted_qh:.2f}")
+    st.write(f"Predicted qh (Ton): {predicted_qh:.2f}")
     st.write(f"Predicted yh (mm): {predicted_yh:.2f}")
-    st.write(f"Predicted bm (kNm): {predicted_bm:.2f}")
+    st.write(f"Predicted bm (Ton.m): {predicted_bm:.2f}")
 
 # Optionally, evaluate the model on test data and show performance metrics
 y_pred_test = model.predict(X_test)
