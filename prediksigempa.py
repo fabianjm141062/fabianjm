@@ -45,11 +45,11 @@ minlongitude = 124.0
 maxlongitude = 126.0
 
 # Streamlit App
-st.title("Prediksi Gempa Kota Manado Menggunakan Earthquake Data & Prediction in Manado (1800-2024)oleh Fabian J Manoppo")
+st.title("Prediksi Gempa Kota Manado Menggunakan Earthquake Data & Prediction in Manado (1800-2024)oleh Prof.Dr. Fabian J Manoppo")
 
 # Get earthquake data for Manado from 1800 to 2024
 starttime = '1800-01-01'
-endtime = '2024-12-31'
+endtime = '2025-05-05'
 
 st.write("Fetching earthquake data from USGS...")
 data = get_earthquake_data(starttime, endtime, minlatitude, maxlatitude, minlongitude, maxlongitude)
