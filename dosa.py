@@ -1,28 +1,30 @@
 import streamlit as st
-import pandas as pd
 
-st.set_page_config(page_title="Deteksi Dosa", layout="centered")
+st.set_page_config(page_title="Cek Dosa", layout="centered")
 
-st.title("📖 Deteksi Dosa Berdasarkan Perilaku, oleh Dr.Fabian J Manoppo AI Data Analyst")
+st.title("📖 Deteksi Dosa: Pilih Perilaku Anda, oleh Dr.Fabian J Manoppo AI Data Analyst")
 
-# Dataset
-data = {
-    "Perilaku": ["Membunuh", "Memberi sedekah", "Berzinah", "Iri hati", "Mengampuni"],
-    "Dosa (Label)": ["Ya", "Tidak", "Ya", "Ya", "Tidak"],
-    "Sumber": ["10 Perintah Allah", "Matius 6", "Markus 10", "Galatia 5", "Matius 18"]
-}
-df = pd.DataFrame(data)
+# Daftar perilaku
+perilaku_list = [
+    "Membunuh",
+    "Berzinah",
+    "Iri hati",
+    "Bersaksi dusta",
+    "Menyimpan kebencian",
+    "Tidak mengampuni",
+    "Mencuri",
+    "Menyembah berhala"
+]
 
-st.subheader("📋 Daftar Perilaku dan Label Dosa")
-st.dataframe(df, use_container_width=True)
+st.markdown("Silakan pilih **Yes** jika Anda pernah melakukannya:")
 
-# Deteksi dosa
-if "Ya" in df["Dosa (Label)"].values:
-    pesan = "🛐 **Bertobatlah Karena Kerajaan Surga Sudah Dekat**"
-    warna = "red"
+# Input user
+dosa_respon = {}
+for perilaku in perilaku_list:
+    dosa_respon[perilaku] = st.radio(perilaku, ["No", "Yes"], horizontal=True)
+
+# Evaluasi hasil
+if "Yes" in dosa_respon.values():
+    st.markdown("<h3 style='color:red'>🛐 Bertobatlah Karena Kerajaan Surga Sudah Dekat</h3>", unsafe_allow_html=True)
 else:
-    pesan = "✨ **Berbahagialah, upahmu besar di sorga**"
-    warna = "green"
-
-# Tampilkan pesan
-st.markdown(f"<h3 style='color:{warna}'>{pesan}</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:green'>✨ Berbahagialah, upahmu besar di sorga</h3>", unsafe_allow_html=True)
