@@ -10,5 +10,3 @@ python-chess
 stockfish
 vaderSentiment
 tweepy
-streamlit
-gtts
