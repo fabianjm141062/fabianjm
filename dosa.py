@@ -1,37 +1,34 @@
-# file: dosa_checker.py
-
 import streamlit as st
 import pandas as pd
-import pyttsx3
+from gtts import gTTS
+import os
 
-# Inisialisasi engine suara
-engine = pyttsx3.init()
+st.title("Deteksi Dosa Berdasarkan Perilaku, Oleh D. Fabian J Manoppo AI Data Analyst")
 
-# Judul aplikasi
-st.title("Deteksi Dosa Berdasarkan Perilaku")
-
-# Contoh dataset
+# Dataset
 data = {
     "Perilaku": ["Membunuh", "Memberi sedekah", "Berzinah", "Iri hati", "Mengampuni"],
     "Dosa (Label)": ["Ya", "Tidak", "Ya", "Ya", "Tidak"],
     "Sumber": ["10 Perintah Allah", "Matius 6", "Markus 10", "Galatia 5", "Matius 18"]
 }
-
 df = pd.DataFrame(data)
 st.dataframe(df)
 
-# Cek apakah ada dosa
+# Logika dosa
 if "Ya" in df["Dosa (Label)"].values:
     pesan = "Bertobatlah Karena Kerajaan Surga Sudah Dekat"
     warna = "red"
 else:
-    pesan = "Berbahagialah Upahmu Besar Disorga"
+    pesan = "Berbahagialah, upahmu besar di sorga"
     warna = "green"
 
-# Tampilkan hasil
-st.markdown(f"<h2 style='color:{warna}'>{pesan}</h2>", unsafe_allow_html=True)
+st.markdown(f"<h3 style='color:{warna}'>{pesan}</h3>", unsafe_allow_html=True)
 
-# Tombol untuk mengaktifkan suara
-if st.button("🔊 Putar Suara"):
-    engine.say(pesan)
-    engine.runAndWait()
+# Buat suara dengan gTTS
+tts = gTTS(pesan)
+tts.save("pesan.mp3")
+
+# Tampilkan audio player
+audio_file = open("pesan.mp3", "rb")
+audio_bytes = audio_file.read()
+st.audio(audio_bytes, format="audio/mp3")
