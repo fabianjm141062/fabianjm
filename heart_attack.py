@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 
 # Load the dataset
-@st.cache
+@st.cache_data
 def load_data():
     return pd.read_csv('heart_attack_dataset.csv')
 
