@@ -55,7 +55,7 @@ model = RandomForestClassifier(random_state=42)
 model.fit(X_train, y_train)
 
 # Streamlit app
-st.title("Heart Disease Treatment Prediction oleh Fabian J Manoppo")
+st.title("Heart Disease Treatment Prediction oleh Dr.Fabian J Manoppo AI Data Analyst")
 
 st.write("This app predicts the type of treatment required for heart disease based on input features. Perlu Konsultasi Dokter Ahli, Penjelasan bisa dibaca di link https://fabianjm-ai.com/jantung.")
 
