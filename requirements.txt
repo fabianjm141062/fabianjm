@@ -5,3 +5,7 @@ seaborn
 openpyxl
 yfinance
 scikit-learn
+tensorflow
+pillow
+numpy
+gdown
