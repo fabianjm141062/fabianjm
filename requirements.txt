@@ -7,3 +7,4 @@ openpyxl
 yfinance
 scikit-learn
 numpy
+networkx
