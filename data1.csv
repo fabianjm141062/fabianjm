@@ -1,0 +1,24 @@
+No.,Aktivitas,Notasi,Durasi (Hari),Kegiatan Yang Mendahului
+1,Pembersihan,A,2,-
+2,Pengukuran/Pasangan Bouplank,B,3,A
+3,Mobilisasi Pekerjaan Alat,C,2,B
+4,Galian Tanah Pondasi,D,10,C
+5,Timbunan Kembali Bekas Galian,E,3,D
+6,Timbunan Pasir Dibawah Lantai,F,4,D
+7,Pasangan Pondasi Batu Bata Sp 1:4,G,8,"E,F"
+8,Cor Beton Bertulang Sloof 15/20,H,5,G
+9,Cor Beton Bertulang Kolom 10/10,I,6,H
+10,Cor Beton Bertulang Ring Balok 10/20,J,4,I
+11,Cor Beton Lantai t = 1 0:1:3:5,K,4,J
+12,Pasangan Bata Sp 1:4,L,8,K
+13,Pekerjaan Plesteran 1:4,M,5,L
+14,Pekerjaan Acian,N,4,M
+15,Pasangan Rangka Atap Baja Siku,O,6,G
+16,"Pasangan Penutup Atap Spandek 0,35",P,4,O
+17,"Pasangan Nok Spandek 0,30",Q,1,P
+18,Pasangan List Plank GRC,R,2,Q
+19,Plafon GRC 4 mm Rangka Hollow 40x40,S,6,N
+20,List Tepi Plafon Profil Gypsum,T,2,S
+21,Pasangan Granito 40x40,U,1,L
+22,Pasangan Plint 10x40,V,2,U
+23,Pekerjaan Cat Dinding dan Plafon,W,5,"T,V"
