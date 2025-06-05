@@ -3,11 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import streamlit as st
 
-# Fungsi untuk membaca file CSV
-def load_data(uploaded_file):
-    return pd.read_csv(uploaded_file)
-
-# Konfigurasi halaman Streamlit
+# Konfigurasi halaman
 st.set_page_config(
     page_title="CPM (Critical Path Method)",
     page_icon="📊",
@@ -20,7 +16,7 @@ def calculate_cpm(data):
     G = nx.DiGraph()
     all_nodes = set(data['Notasi'].tolist())
 
-    # Tambahkan node ke grafik
+    # Tambahkan node
     for _, row in data.iterrows():
         G.add_node(row['Notasi'],
                    duration=row['Durasi (Hari)'],
@@ -70,23 +66,26 @@ def calculate_cpm(data):
         critical_path = [n for n in nx.topological_sort(G) if G.nodes[n]['Slack'] == 0]
         critical_path_edges = [(critical_path[i], critical_path[i + 1]) for i in range(len(critical_path) - 1)]
 
-        # Visualisasi
+        # Posisi layout
         for node in G.nodes:
             G.nodes[node]['level'] = G.nodes[node]['early_start']
         pos = nx.multipartite_layout(G, subset_key="level")
 
+        # Label node
         label_full = {}
         for _, row in data.iterrows():
             node = row['Notasi']
             es = G.nodes[node]['early_start']
             ls = G.nodes[node]['late_start']
-            label_full[node] = f"{node}\nES: {es}\nLS: {ls}"
+            label_full[node] = f"{node}\\nES: {es}\\nLS: {ls}"
 
+        # Gambar grafik
         plt.figure(figsize=(20, 7))
         nx.draw_networkx_edges(G, pos, edge_color='gray')
         nx.draw_networkx_nodes(G, pos, node_size=900, node_color='skyblue')
         nx.draw_networkx_labels(G, pos, labels=label_full, font_size=6, font_weight='bold')
 
+        # Label durasi di edge
         for u, v in G.edges:
             x1, y1 = pos[u]
             x2, y2 = pos[v]
@@ -95,13 +94,14 @@ def calculate_cpm(data):
             durasi = G.nodes[u]['duration']
             plt.text(xm, ym, f"{durasi} hari", fontsize=6, fontweight='bold', color='blue', ha='center', va='bottom')
 
+        # Jalur kritis merah
         nx.draw_networkx_edges(G, pos, edgelist=critical_path_edges, edge_color='red', width=2)
 
         plt.title(f'Critical Path: {" → ".join(critical_path)} | Durasi Total: {project_duration} hari', fontsize=10)
         plt.axis('off')
         st.pyplot(plt)
 
-        # Tampilkan tabel hasil
+        # Tabel hasil
         st.subheader("Tabel Hasil CPM")
         hasil = []
         for node in G.nodes:
@@ -118,16 +118,16 @@ def calculate_cpm(data):
     except nx.NetworkXUnfeasible:
         st.error("Struktur grafik tidak valid. Mungkin ada siklus atau kesalahan notasi.")
 
-# Sidebar
-st.sidebar.header('Upload File CSV')
-uploaded_file = st.sidebar.file_uploader("Upload file CPM (format CSV)", type=["csv"])
+# ========== PROGRAM UTAMA ==========
 
-st.title("📊 Aplikasi CPM (Critical Path Method)")
+st.title("📊 Critical Path Method (CPM) - Baca data1.csv")
 
-if uploaded_file is not None:
-    df = load_data(uploaded_file)
+try:
+    df = pd.read_csv("data1.csv")
     st.subheader("Data Aktivitas Proyek")
     st.dataframe(df)
     calculate_cpm(df)
-else:
-    st.info("Silakan upload file CSV untuk memulai.")
+except FileNotFoundError:
+    st.error("File 'data1.csv' tidak ditemukan. Pastikan file ada di direktori yang sama.")
+except Exception as e:
+    st.error(f"Terjadi error saat membaca data: {e}")
